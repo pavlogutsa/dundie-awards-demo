@@ -1,0 +1,146 @@
+{
+  "info": {
+    "name": "ninjaone-dundie.postman_collection_refactored",
+    "_postman_id": "22222222-3333-4444-5555-666666666666",
+    "description": "Refactored endpoints for NinjaOne Dundie Awards demo (employees, activities, index).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Index",
+      "item": [
+        {
+          "name": "GET / - index page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "GET /api/employees - list employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/employees"
+          }
+        },
+        {
+          "name": "GET /api/employees/{id} - get employee by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/employees/{{employeeId}}"
+          }
+        },
+        {
+          "name": "POST /api/employees - create employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jim\",\n  \"lastName\": \"Halpert\",\n  \"organizationId\": 1\n}"
+            },
+            "url": "{{base_url}}/api/employees"
+          }
+        },
+        {
+          "name": "PUT /api/employees/{id} - update employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"UpdatedFirstName\",\n  \"lastName\": \"UpdatedLastName\",\n  \"organizationId\": 1\n}"
+            },
+            "url": "{{base_url}}/api/employees/{{employeeId}}"
+          }
+        },
+        {
+          "name": "DELETE /api/employees/{id} - delete employee",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/employees/{{employeeId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "item": [
+        {
+          "name": "GET /api/activities - list activities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/activities"
+          }
+        },
+        {
+          "name": "GET /api/activities/{id} - get activity by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/activities/{{activityId}}"
+          }
+        },
+        {
+          "name": "POST /api/activities - create activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": 1,\n  \"occurredAt\": \"2025-01-01T10:00:00\"\n}"
+            },
+            "url": "{{base_url}}/api/activities"
+          }
+        },
+        {
+          "name": "DELETE /api/activities/{id} - delete activity",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/activities/{{activityId}}"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "employeeId",
+      "value": "1"
+    },
+    {
+      "key": "activityId",
+      "value": "1"
+    }
+  ]
+}
