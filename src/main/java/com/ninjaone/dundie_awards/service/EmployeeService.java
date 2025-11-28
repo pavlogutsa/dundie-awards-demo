@@ -1,8 +1,7 @@
 package com.ninjaone.dundie_awards.service;
 
-import com.ninjaone.dundie_awards.dto.CreateEmployeeRequest;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
-import com.ninjaone.dundie_awards.dto.UpdateEmployeeRequest;
+import com.ninjaone.dundie_awards.dto.EmployeeRequest;
 import com.ninjaone.dundie_awards.exception.EmployeeNotFoundException;
 import com.ninjaone.dundie_awards.exception.OrganizationNotFoundException;
 import com.ninjaone.dundie_awards.mapper.EmployeeMapper;
@@ -43,9 +42,9 @@ public class EmployeeService {
         return employeeMapper.toDto(e);
     }
 
-    public EmployeeDto createEmployee(CreateEmployeeRequest req) {
-        Organization org = organizationRepository.findById(req.getOrganizationId())
-                .orElseThrow(() -> new OrganizationNotFoundException(req.getOrganizationId()));
+    public EmployeeDto createEmployee(EmployeeRequest req) {
+        Organization org = organizationRepository.findById(req.organizationId())
+                .orElseThrow(() -> new OrganizationNotFoundException(req.organizationId()));
 
         Employee e = employeeMapper.fromCreateRequest(req);
         e.setOrganization(org);
@@ -53,12 +52,12 @@ public class EmployeeService {
         return employeeMapper.toDto(employeeRepository.save(e));
     }
 
-    public EmployeeDto updateEmployee(Long id, UpdateEmployeeRequest req) {
+    public EmployeeDto updateEmployee(Long id, EmployeeRequest req) {
         Employee e = employeeRepository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException(id));
 
-        Organization org = organizationRepository.findById(req.getOrganizationId())
-                .orElseThrow(() -> new OrganizationNotFoundException(req.getOrganizationId()));
+        Organization org = organizationRepository.findById(req.organizationId())
+                .orElseThrow(() -> new OrganizationNotFoundException(req.organizationId()));
 
         employeeMapper.updateEmployeeFromRequest(req, e);
         e.setOrganization(org);
@@ -70,5 +69,20 @@ public class EmployeeService {
         Employee e = employeeRepository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException(id));
         employeeRepository.delete(e);
+    }
+
+    @Transactional
+    public EmployeeDto awardEmployee(Long id) {
+        Employee e = employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+
+        Integer current = e.getDundieAwards();
+        if (current == null) {
+            current = 0;
+        }
+        e.setDundieAwards(current + 1);
+
+        Employee saved = employeeRepository.save(e);
+        return employeeMapper.toDto(saved);
     }
 }

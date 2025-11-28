@@ -1,7 +1,7 @@
 package com.ninjaone.dundie_awards.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "activities")
@@ -12,7 +12,7 @@ public class Activity {
     private long id;
 
     @Column(name = "occurred_at")
-    private LocalDateTime occurredAt;
+    private Instant occurredAt;
 
     @Column(name = "event")
     private String event;
@@ -25,18 +25,18 @@ public class Activity {
 
     }
 
-    public Activity(LocalDateTime localDateTime, String event, Employee employee) {
+    public Activity(Instant instant, String event, Employee employee) {
         super();
-        this.occurredAt = localDateTime;
+        this.occurredAt = instant;
         this.event = event;
         this.employee = employee;
     }
 
-    public LocalDateTime getOccurredAt() {
+    public Instant getOccurredAt() {
         return occurredAt;
     }
 
-    public void setOccurredAt(LocalDateTime occurredAt) {
+    public void setOccurredAt(Instant occurredAt) {
         this.occurredAt = occurredAt;
     }
 

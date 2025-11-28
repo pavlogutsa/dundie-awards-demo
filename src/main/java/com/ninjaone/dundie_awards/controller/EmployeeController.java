@@ -1,9 +1,8 @@
 package com.ninjaone.dundie_awards.controller;
 
 import com.ninjaone.dundie_awards.dto.ApiError;
-import com.ninjaone.dundie_awards.dto.CreateEmployeeRequest;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
-import com.ninjaone.dundie_awards.dto.UpdateEmployeeRequest;
+import com.ninjaone.dundie_awards.dto.EmployeeRequest;
 import com.ninjaone.dundie_awards.exception.EmployeeNotFoundException;
 import com.ninjaone.dundie_awards.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -35,13 +34,13 @@ public class EmployeeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EmployeeDto create(@Valid @RequestBody CreateEmployeeRequest req) {
+    public EmployeeDto create(@Valid @RequestBody EmployeeRequest req) {
         return service.createEmployee(req);
     }
 
     @PutMapping("/{id}")
     public EmployeeDto update(@PathVariable Long id,
-                              @Valid @RequestBody UpdateEmployeeRequest req) {
+                              @Valid @RequestBody EmployeeRequest req) {
         return service.updateEmployee(id, req);
     }
 
@@ -49,6 +48,12 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.deleteEmployee(id);
+    }
+
+    @PostMapping("/{id}/awards")
+    @ResponseStatus(HttpStatus.OK)
+    public EmployeeDto award(@PathVariable Long id) {
+        return service.awardEmployee(id);
     }
 
     @ExceptionHandler(EmployeeNotFoundException.class)

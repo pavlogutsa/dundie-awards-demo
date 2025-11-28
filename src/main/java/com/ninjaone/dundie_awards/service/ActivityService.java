@@ -43,12 +43,13 @@ public class ActivityService {
     }
 
     public ActivityDto createActivity(CreateActivityRequest req) {
-        Employee e = employeeRepository.findById(req.getEmployeeId())
-                .orElseThrow(() -> new EmployeeNotFoundException(req.getEmployeeId()));
+        Employee e = employeeRepository.findById(req.employeeId())
+                .orElseThrow(() -> new EmployeeNotFoundException(req.employeeId()));
 
         Activity a = new Activity();
         a.setEmployee(e);
-        a.setOccurredAt(req.getOccurredAt());
+        a.setOccurredAt(req.occurredAt());
+        a.setEvent(req.event());
 
         return activityMapper.toDto(activityRepository.save(a));
     }
