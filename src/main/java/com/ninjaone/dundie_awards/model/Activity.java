@@ -14,8 +14,9 @@ public class Activity {
     @Column(name = "occurred_at")
     private Instant occurredAt;
 
-    @Column(name = "event")
-    private String event;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event", nullable = false)
+    private ActivityType event;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
@@ -25,7 +26,7 @@ public class Activity {
 
     }
 
-    public Activity(Instant instant, String event, Employee employee) {
+    public Activity(Instant instant, ActivityType event, Employee employee) {
         super();
         this.occurredAt = instant;
         this.event = event;
@@ -40,11 +41,11 @@ public class Activity {
         this.occurredAt = occurredAt;
     }
 
-    public String getEvent() {
+    public ActivityType getEvent() {
         return event;
     }
 
-    public void setEvent(String event) {
+    public void setEvent(ActivityType event) {
         this.event = event;
     }
 

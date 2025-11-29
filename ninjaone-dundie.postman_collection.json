@@ -14,7 +14,11 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{base_url}}/"
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
           }
         }
       ]
@@ -27,7 +31,11 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{base_url}}/api/employees"
+            "url": {
+              "raw": "{{base_url}}/api/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"]
+            }
           }
         },
         {
@@ -35,7 +43,11 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{base_url}}/api/employees/{{employeeId}}"
+            "url": {
+              "raw": "{{base_url}}/api/employees/{{employeeId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "{{employeeId}}"]
+            }
           }
         },
         {
@@ -52,7 +64,11 @@
               "mode": "raw",
               "raw": "{\n  \"firstName\": \"Jim\",\n  \"lastName\": \"Halpert\",\n  \"organizationId\": 1\n}"
             },
-            "url": "{{base_url}}/api/employees"
+            "url": {
+              "raw": "{{base_url}}/api/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"]
+            }
           }
         },
         {
@@ -69,7 +85,11 @@
               "mode": "raw",
               "raw": "{\n  \"firstName\": \"UpdatedFirstName\",\n  \"lastName\": \"UpdatedLastName\",\n  \"organizationId\": 1\n}"
             },
-            "url": "{{base_url}}/api/employees/{{employeeId}}"
+            "url": {
+              "raw": "{{base_url}}/api/employees/{{employeeId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "{{employeeId}}"]
+            }
           }
         },
         {
@@ -77,7 +97,64 @@
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": "{{base_url}}/api/employees/{{employeeId}}"
+            "url": {
+              "raw": "{{base_url}}/api/employees/{{employeeId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "{{employeeId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/employees/{id}/awards - award employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activityType\": \"HELPED_TEAMMATE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/employees/{{employeeId}}/awards",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "{{employeeId}}", "awards"]
+            },
+            "description": "Awards an employee and creates an activity. Valid activityType values: HELPED_TEAMMATE, COMPLETED_PROJECT, MENTORED_COLLEAGUE, INNOVATION, CUSTOMER_SATISFACTION, EMPLOYEE_CREATED, EMPLOYEE_UPDED, AWARD_GRANTED, AWARD_REMOVED"
+          }
+        },
+        {
+          "name": "POST /api/employees/organization/{organizationId}/awards - award all employees in organization",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees/organization/{{organizationId}}/awards",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "organization", "{{organizationId}}", "awards"]
+            },
+            "description": "Awards all employees belonging to the given organization. Returns a list of updated employee DTOs."
+          }
+        },
+        {
+          "name": "DELETE /api/employees/{id}/awards - remove award",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees/{{employeeId}}/awards",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "{{employeeId}}", "awards"]
+            },
+            "description": "Removes an award from an employee and creates an AWARD_REMOVED activity"
           }
         }
       ]
@@ -90,7 +167,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{base_url}}/api/activities"
+            "url": {
+              "raw": "{{base_url}}/api/activities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "activities"]
+            },
+            "description": "Activities are read-only. They are created automatically when employees are awarded or awards are removed."
           }
         },
         {
@@ -98,32 +180,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{base_url}}/api/activities/{{activityId}}"
-          }
-        },
-        {
-          "name": "POST /api/activities - create activity",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"employeeId\": 1,\n  \"occurredAt\": \"2025-01-01T10:00:00\"\n}"
+            "url": {
+              "raw": "{{base_url}}/api/activities/{{activityId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "activities", "{{activityId}}"]
             },
-            "url": "{{base_url}}/api/activities"
-          }
-        },
-        {
-          "name": "DELETE /api/activities/{id} - delete activity",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": "{{base_url}}/api/activities/{{activityId}}"
+            "description": "Activities are read-only. They are created automatically when employees are awarded or awards are removed."
           }
         }
       ]
@@ -140,6 +202,10 @@
     },
     {
       "key": "activityId",
+      "value": "1"
+    },
+    {
+      "key": "organizationId",
       "value": "1"
     }
   ]

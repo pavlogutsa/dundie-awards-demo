@@ -1,6 +1,7 @@
 package com.ninjaone.dundie_awards.controller;
 
 import com.ninjaone.dundie_awards.dto.ApiError;
+import com.ninjaone.dundie_awards.dto.AwardRequest;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
 import com.ninjaone.dundie_awards.dto.EmployeeRequest;
 import com.ninjaone.dundie_awards.exception.EmployeeNotFoundException;
@@ -52,8 +53,25 @@ public class EmployeeController {
 
     @PostMapping("/{id}/awards")
     @ResponseStatus(HttpStatus.OK)
-    public EmployeeDto award(@PathVariable Long id) {
-        return service.awardEmployee(id);
+    public EmployeeDto award(@PathVariable Long id, @Valid @RequestBody AwardRequest request) {
+        return service.awardEmployee(id, request);
+    }
+
+    /**
+     * Award all employees belonging to the given organization.
+     *
+     * Example: POST /api/employees/organization/5/awards
+     */
+    @PostMapping("/organization/{organizationId}/awards")
+    @ResponseStatus(HttpStatus.OK)
+    public List<EmployeeDto> awardAllInOrganization(@PathVariable Long organizationId) {
+        return service.awardAllEmployeesInOrganization(organizationId);
+    }
+    
+    @DeleteMapping("/{id}/awards")
+    @ResponseStatus(HttpStatus.OK)
+    public EmployeeDto removeAward(@PathVariable Long id) {
+        return service.removeAward(id);
     }
 
     @ExceptionHandler(EmployeeNotFoundException.class)

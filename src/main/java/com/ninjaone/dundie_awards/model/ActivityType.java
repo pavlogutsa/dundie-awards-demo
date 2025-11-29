@@ -1,0 +1,14 @@
+package com.ninjaone.dundie_awards.model;
+
+public enum ActivityType {
+    HELPED_TEAMMATE,
+    COMPLETED_PROJECT,
+    MENTORED_COLLEAGUE,
+    INNOVATION,
+    CUSTOMER_SATISFACTION,
+    EMPLOYEE_CREATED,
+    EMPLOYEE_UPDATED,
+    AWARD_GRANTED,
+    AWARD_REMOVED
+}
+

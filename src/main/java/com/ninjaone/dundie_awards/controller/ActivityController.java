@@ -2,10 +2,8 @@ package com.ninjaone.dundie_awards.controller;
 
 import com.ninjaone.dundie_awards.dto.ActivityDto;
 import com.ninjaone.dundie_awards.dto.ApiError;
-import com.ninjaone.dundie_awards.dto.CreateActivityRequest;
 import com.ninjaone.dundie_awards.exception.ActivityNotFoundException;
 import com.ninjaone.dundie_awards.service.ActivityService;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,20 +26,8 @@ public class ActivityController {
     }
 
     @GetMapping("/{id}")
-    public ActivityDto one(@PathVariable Long id) {
+    public ActivityDto get(@PathVariable Long id) {
         return service.getActivity(id);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ActivityDto create(@Valid @RequestBody CreateActivityRequest req) {
-        return service.createActivity(req);
-    }
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        service.deleteActivity(id);
     }
 
     @ExceptionHandler(ActivityNotFoundException.class)
