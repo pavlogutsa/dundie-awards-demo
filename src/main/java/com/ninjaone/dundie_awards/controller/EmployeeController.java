@@ -57,27 +57,9 @@ public class EmployeeController {
         return service.awardEmployee(id, request);
     }
 
-    /**
-     * Award all employees belonging to the given organization.
-     *
-     * Example: POST /api/employees/organization/5/awards
-     */
-    @PostMapping("/organization/{organizationId}/awards")
-    @ResponseStatus(HttpStatus.OK)
-    public List<EmployeeDto> awardAllInOrganization(@PathVariable Long organizationId) {
-        return service.awardAllEmployeesInOrganization(organizationId);
-    }
-    
     @DeleteMapping("/{id}/awards")
     @ResponseStatus(HttpStatus.OK)
     public EmployeeDto removeAward(@PathVariable Long id) {
         return service.removeAward(id);
-    }
-
-    @ExceptionHandler(EmployeeNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(EmployeeNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ApiError(404, ex.getMessage()));
     }
 }

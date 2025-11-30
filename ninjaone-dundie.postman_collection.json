@@ -132,19 +132,6 @@
           }
         },
         {
-          "name": "POST /api/employees/organization/{organizationId}/awards - award all employees in organization",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/employees/organization/{{organizationId}}/awards",
-              "host": ["{{base_url}}"],
-              "path": ["api", "employees", "organization", "{{organizationId}}", "awards"]
-            },
-            "description": "Awards all employees belonging to the given organization. Returns a list of updated employee DTOs."
-          }
-        },
-        {
           "name": "DELETE /api/employees/{id}/awards - remove award",
           "request": {
             "method": "DELETE",
@@ -155,6 +142,31 @@
               "path": ["api", "employees", "{{employeeId}}", "awards"]
             },
             "description": "Removes an award from an employee and creates an AWARD_REMOVED activity"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Organizations",
+      "item": [
+        {
+          "name": "POST /api/organizations/{organizationId}/awards - award all employees in organization",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/organizations/{{organizationId}}/awards?type=INNOVATION",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizations", "{{organizationId}}", "awards"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "INNOVATION",
+                  "description": "Award type (case-insensitive). Valid values: HELPED_TEAMMATE, COMPLETED_PROJECT, MENTORED_COLLEAGUE, INNOVATION, CUSTOMER_SATISFACTION"
+                }
+              ]
+            },
+            "description": "Awards all employees belonging to the given organization with the specified award type. Returns a list of updated employee DTOs. The award type is case-insensitive."
           }
         }
       ]

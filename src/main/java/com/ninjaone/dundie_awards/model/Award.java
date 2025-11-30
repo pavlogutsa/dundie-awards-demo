@@ -1,7 +1,6 @@
 package com.ninjaone.dundie_awards.model;
 
 import jakarta.persistence.*;
-import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -9,26 +8,28 @@ import lombok.Builder;
 import lombok.AccessLevel;
 import lombok.NonNull;
 
+import java.time.Instant;
+
 @Entity
-@Table(name = "activities")
+@Table(name = "awards")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Activity {
+public class Award {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Setter(AccessLevel.NONE)
-    private long id;
-
-    @NonNull
-    @Column(name = "occurred_at")
-    private Instant occurredAt;
+    private Long id;
 
     @NonNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "event", nullable = false)
-    private ActivityType event;
+    @Column(name = "type", nullable = false)
+    private AwardType type;
+
+    @NonNull
+    @Column(name = "awarded_at", nullable = false)
+    private Instant awardedAt;
 
     @NonNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,9 +37,9 @@ public class Activity {
     private Employee employee;
 
     @Builder
-    private Activity(Instant occurredAt, ActivityType event, Employee employee) {
-        this.occurredAt = occurredAt;
-        this.event = event;
+    private Award(AwardType type, Instant awardedAt, Employee employee) {
+        this.type = type;
+        this.awardedAt = awardedAt;
         this.employee = employee;
     }
 }

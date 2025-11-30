@@ -18,14 +18,14 @@ public interface EmployeeMapper {
 
     List<EmployeeDto> toDtoList(List<Employee> employees);
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "organization", ignore = true)
     @Mapping(target = "dundieAwards", constant = "0")
+    @Mapping(target = "awards", ignore = true)
     Employee fromCreateRequest(EmployeeRequest request);
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "organization", ignore = true)
     @Mapping(target = "dundieAwards", ignore = true)
+    @Mapping(target = "awards", ignore = true)
     void updateEmployeeFromRequest(EmployeeRequest request,
                                    @MappingTarget Employee employee);
 }

@@ -2,6 +2,7 @@ package com.ninjaone.dundie_awards.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ninjaone.dundie_awards.dto.AwardRequest;
+import com.ninjaone.dundie_awards.model.AwardType;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
 import com.ninjaone.dundie_awards.dto.EmployeeRequest;
 import com.ninjaone.dundie_awards.model.Activity;
@@ -57,13 +58,23 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testGetAllEmployees() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee1 = new Employee("John", "Doe", organization);
-        employee1.setDundieAwards(0);
+        Employee employee1 = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employeeRepository.save(employee1);
-        Employee employee2 = new Employee("Jane", "Smith", organization);
-        employee2.setDundieAwards(1);
+        Employee employee2 = Employee.builder()
+                .firstName("Jane")
+                .lastName("Smith")
+                .organization(organization)
+                .dundieAwards(1)
+                .build();
         employeeRepository.save(employee2);
 
         mockMvc.perform(get("/api/employees"))
@@ -76,10 +87,16 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testGetEmployeeById() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
 
         mockMvc.perform(get("/api/employees/{id}", employee.getId()))
@@ -107,7 +124,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testCreateEmployee() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
         EmployeeRequest request = new EmployeeRequest("Alice", "Johnson", organization.getId());
         String requestJson = Objects.requireNonNull(objectMapper.writeValueAsString(request));
@@ -135,7 +154,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testCreateEmployeeWithInvalidData() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
         // Missing firstName
         EmployeeRequest invalidRequest = new EmployeeRequest("", "Johnson", organization.getId());
@@ -164,10 +185,16 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testUpdateEmployee() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
         EmployeeRequest updateRequest = new EmployeeRequest("John", "Updated", organization.getId());
         String updateRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(updateRequest));
@@ -193,7 +220,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testUpdateEmployeeNotFound() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
         EmployeeRequest updateRequest = new EmployeeRequest("John", "Updated", organization.getId());
         String updateRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(updateRequest));
@@ -210,10 +239,16 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testUpdateEmployeeWithInvalidData() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
         EmployeeRequest invalidRequest = new EmployeeRequest("", "Updated", organization.getId());
         String invalidRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(invalidRequest));
@@ -227,10 +262,16 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testDeleteEmployee() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
         Long employeeId = employee.getId();
 
@@ -252,15 +293,21 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testAwardEmployee() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
         // Initially has 0 awards
         assertThat(employee.getDundieAwards()).isEqualTo(0);
 
-        AwardRequest awardRequest = new AwardRequest(ActivityType.HELPED_TEAMMATE);
+        AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
         String awardRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest));
         String response = mockMvc.perform(post("/api/employees/{id}/awards", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -283,20 +330,26 @@ class EmployeeControllerIntegrationTest {
         // Verify activity was created with the specified type
         List<Activity> activities = activityRepository.findAll();
         assertThat(activities).hasSize(1);
-        assertThat(activities.get(0).getEvent()).isEqualTo(ActivityType.HELPED_TEAMMATE);
+        assertThat(activities.get(0).getEvent()).isEqualTo(ActivityType.AWARD_GRANTED);
         assertThat(activities.get(0).getEmployee().getId()).isEqualTo(employee.getId());
     }
 
     @Test
     void testAwardEmployeeMultipleTimes() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
         // Award first time
-        AwardRequest awardRequest1 = new AwardRequest(ActivityType.COMPLETED_PROJECT);
+        AwardRequest awardRequest1 = new AwardRequest(AwardType.INNOVATION);
         String awardRequest1Json = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest1));
         mockMvc.perform(post("/api/employees/{id}/awards", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -305,7 +358,7 @@ class EmployeeControllerIntegrationTest {
                 .andExpect(jsonPath("$.dundieAwards").value(1));
 
         // Award second time
-        AwardRequest awardRequest2 = new AwardRequest(ActivityType.MENTORED_COLLEAGUE);
+        AwardRequest awardRequest2 = new AwardRequest(AwardType.COMPLETED_PROJECT);
         String awardRequest2Json = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest2));
         mockMvc.perform(post("/api/employees/{id}/awards", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -322,21 +375,27 @@ class EmployeeControllerIntegrationTest {
         Long employeeId = employee.getId();
         assertThat(activities).hasSize(2);
         assertThat(activities.stream().map(Activity::getEvent).toList())
-                .containsExactlyInAnyOrder(ActivityType.COMPLETED_PROJECT, ActivityType.MENTORED_COLLEAGUE);
+                .containsExactlyInAnyOrder(ActivityType.AWARD_GRANTED, ActivityType.AWARD_GRANTED);
         assertThat(activities).allMatch(a -> a.getEmployee().getId() == employeeId);
     }
 
     @Test
     void testAwardEmployeeWithNullAwards() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
         // Create employee with null awards (don't set dundieAwards, leaving it null)
-        Employee employeeWithNullAwards = new Employee("Bob", "Wilson", organization);
+        Employee employeeWithNullAwards = Employee.builder()
+                .firstName("Bob")
+                .lastName("Wilson")
+                .organization(organization)
+                .build();
         // dundieAwards is null by default, so we don't set it
         employeeWithNullAwards = employeeRepository.save(employeeWithNullAwards);
 
-        AwardRequest awardRequest = new AwardRequest(ActivityType.INNOVATION);
+        AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
         String awardRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest));
         mockMvc.perform(post("/api/employees/{id}/awards", employeeWithNullAwards.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -351,12 +410,12 @@ class EmployeeControllerIntegrationTest {
         // Verify activity was created with the specified type
         List<Activity> activities = activityRepository.findAll();
         assertThat(activities).hasSize(1);
-        assertThat(activities.get(0).getEvent()).isEqualTo(ActivityType.INNOVATION);
+        assertThat(activities.get(0).getEvent()).isEqualTo(ActivityType.AWARD_GRANTED);
     }
 
     @Test
     void testAwardEmployeeNotFound() throws Exception {
-        AwardRequest awardRequest = new AwardRequest(ActivityType.CUSTOMER_SATISFACTION);
+        AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
         String awardRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest));
         mockMvc.perform(post("/api/employees/{id}/awards", 999L)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -370,10 +429,16 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testRemoveAward() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(2);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(2)
+                .build();
         employee = employeeRepository.save(employee);
 
         String response = mockMvc.perform(delete("/api/employees/{id}/awards", employee.getId()))
@@ -402,10 +467,16 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testRemoveAwardWithNoAwards() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
 
         mockMvc.perform(delete("/api/employees/{id}/awards", employee.getId()))

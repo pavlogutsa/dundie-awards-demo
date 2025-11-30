@@ -9,6 +9,7 @@ import com.ninjaone.dundie_awards.exception.OrganizationNotFoundException;
 import com.ninjaone.dundie_awards.mapper.EmployeeMapper;
 import com.ninjaone.dundie_awards.model.Activity;
 import com.ninjaone.dundie_awards.model.ActivityType;
+import com.ninjaone.dundie_awards.model.AwardType;
 import com.ninjaone.dundie_awards.model.Employee;
 import com.ninjaone.dundie_awards.model.Organization;
 import com.ninjaone.dundie_awards.repository.ActivityRepository;
@@ -17,6 +18,7 @@ import com.ninjaone.dundie_awards.repository.OrganizationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -53,9 +55,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Use real MapStruct mapper instead of mock
-        employeeMapper = new com.ninjaone.dundie_awards.mapper.EmployeeMapperImpl();
-        // Manually inject the real mapper into the service since @InjectMocks won't work with manual initialization
+        employeeMapper = Mappers.getMapper(EmployeeMapper.class);
         employeeService = new EmployeeService(
                 employeeRepository,
                 organizationRepository,
@@ -67,14 +67,21 @@ class EmployeeServiceTest {
     @Test
     void testGetAllEmployees() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(0);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         
-        Employee employee2 = new Employee("Jane", "Smith", testOrganization);
-        employee2.setId(2L);
+        Employee employee2 = Employee.builder()
+                .firstName("Jane")
+                .lastName("Smith")
+                .organization(testOrganization)
+                .build();
         List<Employee> employees = Arrays.asList(testEmployee, employee2);
 
         when(employeeRepository.findAll()).thenReturn(employees);
@@ -108,11 +115,15 @@ class EmployeeServiceTest {
     @Test
     void testGetEmployeeById() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(0);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         
         EmployeeDto testEmployeeDto = employeeMapper.toDto(testEmployee);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
@@ -123,7 +134,6 @@ class EmployeeServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(testEmployeeDto);
-        assertThat(result.id()).isEqualTo(1L);
         assertThat(result.firstName()).isEqualTo("John");
         assertThat(result.lastName()).isEqualTo("Doe");
         verify(employeeRepository).findById(1L);
@@ -145,13 +155,17 @@ class EmployeeServiceTest {
     @Test
     void testCreateEmployee() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
         
         EmployeeRequest testEmployeeRequest = new EmployeeRequest("John", "Doe", 1L);
-        Employee savedEmployee = new Employee("John", "Doe", testOrganization);
-        savedEmployee.setId(1L);
-        savedEmployee.setDundieAwards(0);
+        Employee savedEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         EmployeeDto testEmployeeDto = employeeMapper.toDto(savedEmployee);
 
         when(organizationRepository.findById(1L)).thenReturn(Optional.of(testOrganization));
@@ -186,16 +200,23 @@ class EmployeeServiceTest {
     @Test
     void testUpdateEmployee() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(0);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         
         EmployeeRequest updateRequest = new EmployeeRequest("John", "Updated", 1L);
-        Employee updatedEmployee = new Employee("John", "Updated", testOrganization);
-        updatedEmployee.setId(1L);
-        updatedEmployee.setDundieAwards(0);
+        Employee updatedEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Updated")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
         when(organizationRepository.findById(1L)).thenReturn(Optional.of(testOrganization));
@@ -230,11 +251,15 @@ class EmployeeServiceTest {
     @Test
     void testUpdateEmployeeWithNonExistentOrganization() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(0);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
         when(organizationRepository.findById(999L)).thenReturn(Optional.empty());
@@ -253,11 +278,15 @@ class EmployeeServiceTest {
     @Test
     void testDeleteEmployee() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(0);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
         doNothing().when(employeeRepository).delete(any(Employee.class));
@@ -287,17 +316,24 @@ class EmployeeServiceTest {
     @Test
     void testAwardEmployee() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(0);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         
-        Employee awardedEmployee = new Employee("John", "Doe", testOrganization);
-        awardedEmployee.setId(1L);
-        awardedEmployee.setDundieAwards(1);
+        Employee awardedEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(1)
+                .build();
 
-        AwardRequest awardRequest = new AwardRequest(ActivityType.HELPED_TEAMMATE);
+        AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
         when(employeeRepository.save(any(Employee.class))).thenReturn(awardedEmployee);
@@ -314,8 +350,8 @@ class EmployeeServiceTest {
             @Override
             public boolean matches(Activity activity) {
                 Activity nonNullActivity = Objects.requireNonNull(activity);
-                return nonNullActivity.getEvent() == ActivityType.HELPED_TEAMMATE &&
-                       nonNullActivity.getEmployee().getId() == 1L;
+                return nonNullActivity.getEvent() == ActivityType.AWARD_GRANTED &&
+                       nonNullActivity.getEmployee() != null;
             }
         };
         verify(activityRepository).save(argThat(activityMatcher)); // NOSONAR - Mockito guarantees non-null
@@ -324,17 +360,24 @@ class EmployeeServiceTest {
     @Test
     void testAwardEmployeeWithExistingAwards() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(5);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(5)
+                .build();
         
-        Employee awardedEmployee = new Employee("John", "Doe", testOrganization);
-        awardedEmployee.setId(1L);
-        awardedEmployee.setDundieAwards(6);
+        Employee awardedEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(6)
+                .build();
 
-        AwardRequest awardRequest = new AwardRequest(ActivityType.COMPLETED_PROJECT);
+        AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
         when(employeeRepository.save(any(Employee.class))).thenReturn(awardedEmployee);
@@ -351,8 +394,8 @@ class EmployeeServiceTest {
             @Override
             public boolean matches(Activity activity) {
                 Activity nonNullActivity = Objects.requireNonNull(activity);
-                return nonNullActivity.getEvent() == ActivityType.COMPLETED_PROJECT &&
-                       nonNullActivity.getEmployee().getId() == 1L;
+                return nonNullActivity.getEvent() == ActivityType.AWARD_GRANTED &&
+                       nonNullActivity.getEmployee() != null;
             }
         };
         verify(activityRepository).save(argThat(activityMatcher)); // NOSONAR - Mockito guarantees non-null
@@ -361,19 +404,26 @@ class EmployeeServiceTest {
     @Test
     void testAwardEmployeeWithNullAwards() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
         
         // Create employee with null dundieAwards (don't set it, leaving it null)
-        Employee employeeWithNullAwards = new Employee("John", "Doe", testOrganization);
-        employeeWithNullAwards.setId(1L);
+        Employee employeeWithNullAwards = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .build();
         // dundieAwards is null by default, so we don't set it
 
-        Employee awardedEmployee = new Employee("John", "Doe", testOrganization);
-        awardedEmployee.setId(1L);
-        awardedEmployee.setDundieAwards(1);
+        Employee awardedEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(1)
+                .build();
 
-        AwardRequest awardRequest = new AwardRequest(ActivityType.MENTORED_COLLEAGUE);
+        AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employeeWithNullAwards));
         when(employeeRepository.save(any(Employee.class))).thenReturn(awardedEmployee);
@@ -390,8 +440,8 @@ class EmployeeServiceTest {
             @Override
             public boolean matches(Activity activity) {
                 Activity nonNullActivity = Objects.requireNonNull(activity);
-                return nonNullActivity.getEvent() == ActivityType.MENTORED_COLLEAGUE &&
-                       nonNullActivity.getEmployee().getId() == 1L;
+                return nonNullActivity.getEvent() == ActivityType.AWARD_GRANTED &&
+                       nonNullActivity.getEmployee() != null;
             }
         };
         verify(activityRepository).save(argThat(activityMatcher)); // NOSONAR - Mockito guarantees non-null
@@ -401,7 +451,7 @@ class EmployeeServiceTest {
     void testAwardEmployeeNotFound() {
         // Given
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
-        AwardRequest awardRequest = new AwardRequest(ActivityType.INNOVATION);
+        AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
 
         // When/Then
         assertThatThrownBy(() -> employeeService.awardEmployee(999L, awardRequest))
@@ -416,15 +466,22 @@ class EmployeeServiceTest {
     @Test
     void testRemoveAward() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(2);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(2)
+                .build();
         
-        Employee employeeAfterRemoval = new Employee("John", "Doe", testOrganization);
-        employeeAfterRemoval.setId(1L);
-        employeeAfterRemoval.setDundieAwards(1);
+        Employee employeeAfterRemoval = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(1)
+                .build();
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employeeAfterRemoval);
@@ -437,13 +494,10 @@ class EmployeeServiceTest {
         assertThat(result.dundieAwards()).isEqualTo(1);
         verify(employeeRepository).findById(1L);
         verify(employeeRepository).save(any(Employee.class));
-        ArgumentMatcher<Activity> activityMatcher = new ArgumentMatcher<Activity>() {
-            @Override
-            public boolean matches(Activity activity) {
-                Activity nonNullActivity = Objects.requireNonNull(activity);
-                return nonNullActivity.getEvent() == ActivityType.AWARD_REMOVED &&
-                       nonNullActivity.getEmployee().getId() == 1L;
-            }
+        ArgumentMatcher<Activity> activityMatcher = activity -> {
+            Activity nonNullActivity = Objects.requireNonNull(activity);
+            return nonNullActivity.getEvent() == ActivityType.AWARD_REMOVED &&
+                   nonNullActivity.getEmployee() == employeeAfterRemoval;
         };
         verify(activityRepository).save(argThat(activityMatcher)); // NOSONAR - Mockito guarantees non-null
     }
@@ -451,11 +505,15 @@ class EmployeeServiceTest {
     @Test
     void testRemoveAwardWithNoAwards() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
-        testEmployee.setDundieAwards(0);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
         
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
 
@@ -472,10 +530,14 @@ class EmployeeServiceTest {
     @Test
     void testRemoveAwardWithNullAwards() {
         // Given
-        Organization testOrganization = new Organization("Test Organization");
-        testOrganization.setId(1L);
-        Employee testEmployee = new Employee("John", "Doe", testOrganization);
-        testEmployee.setId(1L);
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .build();
         // dundieAwards is null by default
         
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));

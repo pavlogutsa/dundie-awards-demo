@@ -1,9 +1,7 @@
 package com.ninjaone.dundie_awards.service;
 
 import com.ninjaone.dundie_awards.dto.ActivityDto;
-import com.ninjaone.dundie_awards.exception.ActivityNotFoundException;
 import com.ninjaone.dundie_awards.mapper.ActivityMapper;
-import com.ninjaone.dundie_awards.model.Activity;
 import com.ninjaone.dundie_awards.repository.ActivityRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +24,5 @@ public class ActivityService {
     @Transactional(readOnly=true)
     public List<ActivityDto> getAllActivities() {
         return activityMapper.toDtoList(activityRepository.findAll());
-    }
-
-    @Transactional(readOnly=true)
-    public ActivityDto getActivity(Long id) {
-        Activity a = activityRepository.findById(id)
-                .orElseThrow(() -> new ActivityNotFoundException(id));
-        return activityMapper.toDto(a);
     }
 }

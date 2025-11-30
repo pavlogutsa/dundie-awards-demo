@@ -9,6 +9,8 @@ import com.ninjaone.dundie_awards.exception.OrganizationNotFoundException;
 import com.ninjaone.dundie_awards.mapper.EmployeeMapper;
 import com.ninjaone.dundie_awards.model.Activity;
 import com.ninjaone.dundie_awards.model.ActivityType;
+import com.ninjaone.dundie_awards.model.Award;
+import com.ninjaone.dundie_awards.model.AwardType;
 import com.ninjaone.dundie_awards.model.Employee;
 import com.ninjaone.dundie_awards.model.Organization;
 import com.ninjaone.dundie_awards.repository.ActivityRepository;
@@ -77,34 +79,35 @@ public class EmployeeService {
         return employeeMapper.toDto(employeeRepository.save(e));
     }
 
-    /**
-     * Award all employees of a given organization by incrementing their
-     * dundieAwards counter by 1.
-     */
     @Transactional
     public List<EmployeeDto> awardAllEmployeesInOrganization(Long organizationId) {
-        // Ensure organization exists
         Organization org = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new OrganizationNotFoundException(organizationId));
 
-        // Load employees for that organization
         List<Employee> employees = employeeRepository.findByOrganizationId(organizationId);
-
         if (employees.isEmpty()) {
             throw new BusinessValidationException(
                     "Organization " + organizationId + " has no employees to award");
         }
 
-        // Increment awards for each employee
+        Instant now = Instant.now();
+
         for (Employee e : employees) {
-            Integer current = e.getDundieAwards();
-            if (current == null) {
-                current = 0;
-            }
-            e.setDundieAwards(current + 1);
+            // create a new Award for this employee
+            Award award = Award.builder()
+                    .type(AwardType.INNOVATION)
+                    .awardedAt(now)
+                    .employee(e)
+                    .build();
+
+            // maintain bidirectional relationship and counter
+            e.addAward(award);
+
+            // Option A: rely on cascade from Employee to Award (with cascade = ALL)
+            // Option B: explicitly save awards via awardRepository
+            // Here, with cascade, just saving employees is enough.
         }
 
-        // Persist all changes and return DTOs
         List<Employee> saved = employeeRepository.saveAll(employees);
         return employeeMapper.toDtoList(saved);
     }
@@ -132,7 +135,7 @@ public class EmployeeService {
         Activity activity = new Activity();
         activity.setEmployee(saved);
         activity.setOccurredAt(Instant.now());
-        activity.setEvent(request.activityType());
+        activity.setEvent(ActivityType.AWARD_GRANTED);
         activityRepository.save(activity);
 
         return employeeMapper.toDto(saved);

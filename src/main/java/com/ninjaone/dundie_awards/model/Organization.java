@@ -2,39 +2,31 @@ package com.ninjaone.dundie_awards.model;
 
 import jakarta.persistence.*;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.Builder;
+import lombok.AccessLevel;
+import lombok.NonNull;
+
 @Entity
 @Table(name = "organizations")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Organization {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Setter(AccessLevel.NONE)
   private long id;
 
+  @NonNull
   @Column(name = "name")
   private String name;
 
-  public Organization() {
-
-  }
-
-  public Organization(String name) {
-    super();
-    this.name = name;
-  }
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
+  @Builder
+  private Organization(String name) {
     this.name = name;
   }
 }

@@ -56,14 +56,28 @@ class ActivityControllerIntegrationTest {
     @Test
     void testGetAllActivities() throws Exception {
         // Given
-        Organization organization = new Organization("Test Organization");
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
         organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
         employee = employeeRepository.save(employee);
-        Activity activity1 = new Activity(Instant.now(), ActivityType.EMPLOYEE_CREATED, employee);
+        Activity activity1 = Activity.builder()
+                .occurredAt(Instant.now())
+                .event(ActivityType.EMPLOYEE_CREATED)
+                .employee(employee)
+                .build();
         activityRepository.save(activity1);
-        Activity activity2 = new Activity(Instant.now(), ActivityType.EMPLOYEE_UPDATED, employee);
+        Activity activity2 = Activity.builder()
+                .occurredAt(Instant.now())
+                .event(ActivityType.EMPLOYEE_UPDATED)
+                .employee(employee)
+                .build();
         activityRepository.save(activity2);
 
         mockMvc.perform(get("/api/activities"))
@@ -74,37 +88,6 @@ class ActivityControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].occurredAt").exists())
                 .andExpect(jsonPath("$[0].employeeId").exists());
-    }
-
-    @Test
-    void testGetActivityById() throws Exception {
-        // Given
-        Organization organization = new Organization("Test Organization");
-        organization = organizationRepository.save(organization);
-        Employee employee = new Employee("John", "Doe", organization);
-        employee.setDundieAwards(0);
-        employee = employeeRepository.save(employee);
-        Activity activity = new Activity(Instant.now(), ActivityType.EMPLOYEE_CREATED, employee);
-        activity = activityRepository.save(activity);
-
-        mockMvc.perform(get("/api/activities/{id}", activity.getId()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.id").value(activity.getId()))
-                .andExpect(jsonPath("$.occurredAt").exists())
-                .andExpect(jsonPath("$.employeeId").value(employee.getId()))
-                .andExpect(jsonPath("$.event").value("EMPLOYEE_CREATED"));
-    }
-
-    @Test
-    void testGetActivityByIdNotFound() throws Exception {
-        Long nonExistentId = 999L;
-
-        mockMvc.perform(get("/api/activities/{id}", nonExistentId))
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Activity with id 999 not found"));
     }
 
     @Test
