@@ -3,6 +3,7 @@ package com.ninjaone.dundie_awards.service;
 import com.ninjaone.dundie_awards.dto.AwardRequest;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
 import com.ninjaone.dundie_awards.dto.EmployeeRequest;
+import com.ninjaone.dundie_awards.dto.UpdateEmployeeRequest;
 import com.ninjaone.dundie_awards.exception.BusinessValidationException;
 import com.ninjaone.dundie_awards.exception.EmployeeNotFoundException;
 import com.ninjaone.dundie_awards.exception.OrganizationNotFoundException;
@@ -617,6 +618,231 @@ class EmployeeServiceTest {
         verify(employeeRepository).findById(999L);
         verify(employeeRepository, never()).save(any(Employee.class));
         verify(activityRepository, never()).save(any(Activity.class));
+    }
+
+    @Test
+    void testPatchEmployeeWithFirstNameOnly() {
+        // Given
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+        
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", null, null);
+        Employee patchedEmployee = Employee.builder()
+                .firstName("Jane")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(employeeRepository.save(any(Employee.class))).thenReturn(patchedEmployee);
+
+        // When
+        EmployeeDto result = employeeService.patchEmployee(1L, patchRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.firstName()).isEqualTo("Jane");
+        assertThat(result.lastName()).isEqualTo("Doe"); // Should remain unchanged
+        verify(employeeRepository).findById(1L);
+        verify(organizationRepository, never()).findById(any(Long.class));
+        verify(employeeRepository).save(any(Employee.class));
+    }
+
+    @Test
+    void testPatchEmployeeWithLastNameOnly() {
+        // Given
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+        
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, "Smith", null);
+        Employee patchedEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Smith")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(employeeRepository.save(any(Employee.class))).thenReturn(patchedEmployee);
+
+        // When
+        EmployeeDto result = employeeService.patchEmployee(1L, patchRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.firstName()).isEqualTo("John"); // Should remain unchanged
+        assertThat(result.lastName()).isEqualTo("Smith");
+        verify(employeeRepository).findById(1L);
+        verify(organizationRepository, never()).findById(any(Long.class));
+        verify(employeeRepository).save(any(Employee.class));
+    }
+
+    @Test
+    void testPatchEmployeeWithOrganizationIdOnly() {
+        // Given
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Organization newOrganization = Organization.builder()
+                .name("New Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+        
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, 2L);
+        Employee patchedEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(newOrganization)
+                .dundieAwards(0)
+                .build();
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(organizationRepository.findById(2L)).thenReturn(Optional.of(newOrganization));
+        when(employeeRepository.save(any(Employee.class))).thenReturn(patchedEmployee);
+
+        // When
+        EmployeeDto result = employeeService.patchEmployee(1L, patchRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.firstName()).isEqualTo("John"); // Should remain unchanged
+        assertThat(result.lastName()).isEqualTo("Doe"); // Should remain unchanged
+        verify(employeeRepository).findById(1L);
+        verify(organizationRepository).findById(2L);
+        verify(employeeRepository).save(any(Employee.class));
+    }
+
+    @Test
+    void testPatchEmployeeWithMultipleFields() {
+        // Given
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Organization newOrganization = Organization.builder()
+                .name("New Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+        
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", "Smith", 2L);
+        Employee patchedEmployee = Employee.builder()
+                .firstName("Jane")
+                .lastName("Smith")
+                .organization(newOrganization)
+                .dundieAwards(0)
+                .build();
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(organizationRepository.findById(2L)).thenReturn(Optional.of(newOrganization));
+        when(employeeRepository.save(any(Employee.class))).thenReturn(patchedEmployee);
+
+        // When
+        EmployeeDto result = employeeService.patchEmployee(1L, patchRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.firstName()).isEqualTo("Jane");
+        assertThat(result.lastName()).isEqualTo("Smith");
+        verify(employeeRepository).findById(1L);
+        verify(organizationRepository).findById(2L);
+        verify(employeeRepository).save(any(Employee.class));
+    }
+
+    @Test
+    void testPatchEmployeeWithAllNullFields() {
+        // Given
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+        
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, null);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(employeeRepository.save(any(Employee.class))).thenReturn(testEmployee);
+
+        // When
+        EmployeeDto result = employeeService.patchEmployee(1L, patchRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.firstName()).isEqualTo("John"); // Should remain unchanged
+        assertThat(result.lastName()).isEqualTo("Doe"); // Should remain unchanged
+        verify(employeeRepository).findById(1L);
+        verify(organizationRepository, never()).findById(any(Long.class));
+        verify(employeeRepository).save(any(Employee.class));
+    }
+
+    @Test
+    void testPatchEmployeeNotFound() {
+        // Given
+        when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", null, null);
+
+        // When/Then
+        assertThatThrownBy(() -> employeeService.patchEmployee(999L, patchRequest))
+                .isInstanceOf(EmployeeNotFoundException.class)
+                .hasMessage("Employee with id 999 not found");
+
+        verify(employeeRepository).findById(999L);
+        verify(organizationRepository, never()).findById(any(Long.class));
+        verify(employeeRepository, never()).save(any(Employee.class));
+    }
+
+    @Test
+    void testPatchEmployeeWithNonExistentOrganization() {
+        // Given
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        Employee testEmployee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(testOrganization)
+                .dundieAwards(0)
+                .build();
+        
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(organizationRepository.findById(999L)).thenReturn(Optional.empty());
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, 999L);
+
+        // When/Then
+        assertThatThrownBy(() -> employeeService.patchEmployee(1L, patchRequest))
+                .isInstanceOf(OrganizationNotFoundException.class)
+                .hasMessage("Organization with id 999 not found");
+
+        verify(employeeRepository).findById(1L);
+        verify(organizationRepository).findById(999L);
+        verify(employeeRepository, never()).save(any(Employee.class));
     }
 }
 

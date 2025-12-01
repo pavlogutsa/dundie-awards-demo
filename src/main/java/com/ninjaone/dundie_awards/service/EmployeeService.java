@@ -3,6 +3,7 @@ package com.ninjaone.dundie_awards.service;
 import com.ninjaone.dundie_awards.dto.AwardRequest;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
 import com.ninjaone.dundie_awards.dto.EmployeeRequest;
+import com.ninjaone.dundie_awards.dto.UpdateEmployeeRequest;
 import com.ninjaone.dundie_awards.exception.BusinessValidationException;
 import com.ninjaone.dundie_awards.exception.EmployeeNotFoundException;
 import com.ninjaone.dundie_awards.exception.OrganizationNotFoundException;
@@ -119,6 +120,37 @@ public class EmployeeService {
             return updated;
         } catch (Exception e) {
             log.error("Failed to update employee with id: {}", id, e);
+            throw e;
+        }
+    }
+
+    public EmployeeDto patchEmployee(Long id, UpdateEmployeeRequest req) {
+        log.info("Partially updating employee with id: {}", id);
+        try {
+            Employee e = employeeRepository.findById(id)
+                    .orElseThrow(() -> {
+                        log.warn("Employee not found with id: {}", id);
+                        return new EmployeeNotFoundException(id);
+                    });
+
+            // Only fetch and set organization if organizationId is provided
+            if (req.organizationId() != null) {
+                Organization org = organizationRepository.findById(req.organizationId())
+                        .orElseThrow(() -> {
+                            log.warn("Organization not found with id: {}", req.organizationId());
+                            return new OrganizationNotFoundException(req.organizationId());
+                        });
+                e.setOrganization(org);
+            }
+
+            // Use mapper to update only non-null fields
+            employeeMapper.updateEmployeeFromPartialRequest(req, e);
+
+            EmployeeDto updated = employeeMapper.toDto(employeeRepository.save(e));
+            log.info("Successfully patched employee (id: {})", updated.id());
+            return updated;
+        } catch (Exception e) {
+            log.error("Failed to patch employee with id: {}", id, e);
             throw e;
         }
     }

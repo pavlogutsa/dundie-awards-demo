@@ -5,6 +5,7 @@ import com.ninjaone.dundie_awards.dto.AwardRequest;
 import com.ninjaone.dundie_awards.model.AwardType;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
 import com.ninjaone.dundie_awards.dto.EmployeeRequest;
+import com.ninjaone.dundie_awards.dto.UpdateEmployeeRequest;
 import com.ninjaone.dundie_awards.model.Activity;
 import com.ninjaone.dundie_awards.model.ActivityType;
 import com.ninjaone.dundie_awards.model.Employee;
@@ -595,6 +596,238 @@ class EmployeeControllerIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Employee with id 999 not found"));
+    }
+
+    @Test
+    void testPatchEmployeeWithFirstNameOnly() throws Exception {
+        // Given
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
+        employee = employeeRepository.save(employee);
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", null, null);
+        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+
+        String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(patchRequestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(employee.getId()))
+                .andExpect(jsonPath("$.firstName").value("Jane"))
+                .andExpect(jsonPath("$.lastName").value("Doe")) // Should remain unchanged
+                .andExpect(jsonPath("$.organizationId").value(organization.getId()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
+        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        assertThat(savedEmployee.getFirstName()).isEqualTo("Jane");
+        assertThat(savedEmployee.getLastName()).isEqualTo("Doe");
+    }
+
+    @Test
+    void testPatchEmployeeWithLastNameOnly() throws Exception {
+        // Given
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
+        employee = employeeRepository.save(employee);
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, "Smith", null);
+        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+
+        String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(patchRequestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(employee.getId()))
+                .andExpect(jsonPath("$.firstName").value("John")) // Should remain unchanged
+                .andExpect(jsonPath("$.lastName").value("Smith"))
+                .andExpect(jsonPath("$.organizationId").value(organization.getId()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
+        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        assertThat(savedEmployee.getFirstName()).isEqualTo("John");
+        assertThat(savedEmployee.getLastName()).isEqualTo("Smith");
+    }
+
+    @Test
+    void testPatchEmployeeWithOrganizationIdOnly() throws Exception {
+        // Given
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        Organization newOrganization = Organization.builder()
+                .name("New Organization")
+                .build();
+        newOrganization = organizationRepository.save(newOrganization);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
+        employee = employeeRepository.save(employee);
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, newOrganization.getId());
+        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+
+        String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(patchRequestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(employee.getId()))
+                .andExpect(jsonPath("$.firstName").value("John")) // Should remain unchanged
+                .andExpect(jsonPath("$.lastName").value("Doe")) // Should remain unchanged
+                .andExpect(jsonPath("$.organizationId").value(newOrganization.getId()))
+                .andExpect(jsonPath("$.organizationName").value("New Organization"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
+        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        assertThat(savedEmployee.getFirstName()).isEqualTo("John");
+        assertThat(savedEmployee.getLastName()).isEqualTo("Doe");
+        assertThat(savedEmployee.getOrganization().getId()).isEqualTo(newOrganization.getId());
+    }
+
+    @Test
+    void testPatchEmployeeWithMultipleFields() throws Exception {
+        // Given
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        Organization newOrganization = Organization.builder()
+                .name("New Organization")
+                .build();
+        newOrganization = organizationRepository.save(newOrganization);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
+        employee = employeeRepository.save(employee);
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", "Smith", newOrganization.getId());
+        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+
+        String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(patchRequestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(employee.getId()))
+                .andExpect(jsonPath("$.firstName").value("Jane"))
+                .andExpect(jsonPath("$.lastName").value("Smith"))
+                .andExpect(jsonPath("$.organizationId").value(newOrganization.getId()))
+                .andExpect(jsonPath("$.organizationName").value("New Organization"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
+        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        assertThat(savedEmployee.getFirstName()).isEqualTo("Jane");
+        assertThat(savedEmployee.getLastName()).isEqualTo("Smith");
+        assertThat(savedEmployee.getOrganization().getId()).isEqualTo(newOrganization.getId());
+    }
+
+    @Test
+    void testPatchEmployeeWithAllNullFields() throws Exception {
+        // Given
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
+        employee = employeeRepository.save(employee);
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, null);
+        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+
+        String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(patchRequestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(employee.getId()))
+                .andExpect(jsonPath("$.firstName").value("John")) // Should remain unchanged
+                .andExpect(jsonPath("$.lastName").value("Doe")) // Should remain unchanged
+                .andExpect(jsonPath("$.organizationId").value(organization.getId()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
+        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        assertThat(savedEmployee.getFirstName()).isEqualTo("John");
+        assertThat(savedEmployee.getLastName()).isEqualTo("Doe");
+    }
+
+    @Test
+    void testPatchEmployeeNotFound() throws Exception {
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", null, null);
+        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+
+        mockMvc.perform(patch("/api/employees/{id}", 999L)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(patchRequestJson))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Employee with id 999 not found"));
+    }
+
+    @Test
+    void testPatchEmployeeWithNonExistentOrganization() throws Exception {
+        // Given
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
+        employee = employeeRepository.save(employee);
+        UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, 999L);
+        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+
+        mockMvc.perform(patch("/api/employees/{id}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(patchRequestJson))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Organization with id 999 not found"));
     }
 }
 

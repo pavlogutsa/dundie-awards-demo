@@ -4,6 +4,7 @@ import com.ninjaone.dundie_awards.dto.AwardRequest;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
 import com.ninjaone.dundie_awards.dto.EmployeeRequest;
 import com.ninjaone.dundie_awards.dto.PageResponse;
+import com.ninjaone.dundie_awards.dto.UpdateEmployeeRequest;
 import com.ninjaone.dundie_awards.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,13 @@ public class EmployeeController {
                               @Valid @RequestBody EmployeeRequest req) {
         log.info("PUT /api/employees/{} - Updating employee", id);
         return service.updateEmployee(id, req);
+    }
+
+    @PatchMapping("/{id}")
+    public EmployeeDto patch(@PathVariable Long id,
+                             @RequestBody UpdateEmployeeRequest req) {
+        log.info("PATCH /api/employees/{} - Partially updating employee", id);
+        return service.patchEmployee(id, req);
     }
 
     @DeleteMapping("/{id}")

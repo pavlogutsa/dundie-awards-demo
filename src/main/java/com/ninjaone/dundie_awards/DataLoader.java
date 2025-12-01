@@ -4,6 +4,9 @@ import com.ninjaone.dundie_awards.model.Employee;
 import com.ninjaone.dundie_awards.model.Organization;
 import com.ninjaone.dundie_awards.repository.EmployeeRepository;
 import com.ninjaone.dundie_awards.repository.OrganizationRepository;
+
+import lombok.NonNull;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +28,7 @@ public class DataLoader implements CommandLineRunner {
         // organizationRepository.deleteAll();
 
         if (employeeRepository.count() == 0) {
-            Organization organizationPikashu = Organization.builder()
+            @NonNull Organization organizationPikashu = Organization.builder()
                     .name("Pikashu")
                     .build();
             organizationRepository.save(organizationPikashu);
