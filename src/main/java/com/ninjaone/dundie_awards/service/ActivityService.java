@@ -8,6 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @Transactional
 public class ActivityService {
@@ -23,7 +26,11 @@ public class ActivityService {
 
     @Transactional(readOnly=true)
     public Page<ActivityDto> getAllActivities(@NonNull Pageable pageable) {
-        return activityRepository.findAll(pageable)
+        log.debug("Getting all activities with pagination: page={}, size={}, sort={}", 
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+        Page<ActivityDto> result = activityRepository.findAll(pageable)
                 .map(activityMapper::toDto);
+        log.debug("Retrieved {} activities (total: {})", result.getNumberOfElements(), result.getTotalElements());
+        return result;
     }
 }

@@ -3,12 +3,11 @@ package com.ninjaone.dundie_awards.controller;
 import com.ninjaone.dundie_awards.dto.ActivityDto;
 import com.ninjaone.dundie_awards.dto.PageResponse;
 import com.ninjaone.dundie_awards.service.ActivityService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/activities")
 public class ActivityController {
@@ -20,28 +19,9 @@ public class ActivityController {
     }
 
     @GetMapping
-    public PageResponse<ActivityDto> all(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "occurredAt,desc") String sort) {
-
-        Sort sortSpec = parseSort(sort);
-        Pageable pageable = PageRequest.of(page, size, sortSpec);
-
-        Page<ActivityDto> pageResult = service.getAllActivities(pageable);
-        return PageResponse.from(pageResult);
-    }
-
-    private Sort parseSort(String sort) {
-        // expected format: "field,direction"
-        String[] parts = sort.split(",");
-        if (parts.length != 2) {
-            return Sort.by("occurredAt").descending();
-        }
-        String field = parts[0];
-        String direction = parts[1].toLowerCase();
-        return "desc".equals(direction)
-                ? Sort.by(field).descending()
-                : Sort.by(field).ascending();
+    public PageResponse<ActivityDto> getAllActivities(Pageable pageable) {
+        log.info("GET /api/activities - page={}, size={}, sort={}", 
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+        return PageResponse.from(service.getAllActivities(pageable));
     }
 }

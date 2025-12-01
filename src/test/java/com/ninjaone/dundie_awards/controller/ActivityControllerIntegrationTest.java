@@ -206,9 +206,10 @@ class ActivityControllerIntegrationTest {
                 .build();
         activityRepository.save(activity2);
 
-        // Test default sort (occurredAt,desc) - most recent first
+        // Test descending sort (occurredAt,desc) - most recent first
         // activity2 occurred later (baseTime + 20s) so it should be first
-        mockMvc.perform(get("/api/activities"))
+        mockMvc.perform(get("/api/activities")
+                        .param("sort", "occurredAt,desc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(2))
                 .andExpect(jsonPath("$.items[0].event").value("EMPLOYEE_UPDATED"))

@@ -17,12 +17,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Arrays;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @Transactional
 public class OrganizationService {
@@ -44,34 +45,50 @@ public class OrganizationService {
 
     @Transactional(readOnly=true)
     public Page<OrganizationDto> getAllOrganizations(@NonNull Pageable pageable) {
-        return organizationRepository.findAll(pageable)
+        log.debug("Getting all organizations with pagination: page={}, size={}, sort={}", 
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+        Page<OrganizationDto> result = organizationRepository.findAll(pageable)
                 .map(organizationMapper::toDto);
+        log.debug("Retrieved {} organizations (total: {})", result.getNumberOfElements(), result.getTotalElements());
+        return result;
     }
 
     @Transactional
     public List<EmployeeDto> awardAllEmployeesInOrganization(Long organizationId, AwardType awardType) {
-        Long orgId = Objects.requireNonNull(organizationId);
-        organizationRepository.findById(orgId)
-                .orElseThrow(() -> new OrganizationNotFoundException(organizationId));
+        log.info("Awarding all employees in organization {} with award type: {}", organizationId, awardType);
+        try {
+            Long orgId = Objects.requireNonNull(organizationId);
+            organizationRepository.findById(orgId)
+                    .orElseThrow(() -> {
+                        log.warn("Organization not found with id: {}", organizationId);
+                        return new OrganizationNotFoundException(organizationId);
+                    });
 
-        List<Employee> employees = employeeRepository.findByOrganizationId(orgId);
+            List<Employee> employees = employeeRepository.findByOrganizationId(orgId);
 
-        if (employees.isEmpty()) {
-            throw new BusinessValidationException(
-                    "Organization " + organizationId + " has no employees to award");
+            if (employees.isEmpty()) {
+                log.warn("Organization {} has no employees to award", organizationId);
+                throw new BusinessValidationException(
+                        "Organization " + organizationId + " has no employees to award");
+            }
+
+            log.debug("Awarding {} employees in organization {}", employees.size(), organizationId);
+            Instant now = Instant.now();
+            for (Employee e : employees) {
+                Award award = Award.builder()
+                        .type(awardType)
+                        .awardedAt(now)
+                        .employee(e)
+                        .build();
+                e.addAward(award);
+            }
+
+            List<Employee> saved = employeeRepository.saveAll(employees);
+            log.info("Successfully awarded {} employees in organization {}", saved.size(), organizationId);
+            return employeeMapper.toDtoList(saved);
+        } catch (Exception e) {
+            log.error("Failed to award employees in organization {}", organizationId, e);
+            throw e;
         }
-
-        Instant now = Instant.now();
-        for (Employee e : employees) {
-            Award award = Award.builder()
-                    .type(awardType)
-                    .awardedAt(now)
-                    .employee(e)
-                    .build();
-            e.addAward(award);
-        }
-
-        List<Employee> saved = employeeRepository.saveAll(employees);
-        return employeeMapper.toDtoList(saved);
     }
 }
