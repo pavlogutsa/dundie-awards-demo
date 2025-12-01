@@ -1,9 +1,11 @@
 package com.ninjaone.dundie_awards.service;
 
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
+import com.ninjaone.dundie_awards.dto.OrganizationDto;
 import com.ninjaone.dundie_awards.exception.BusinessValidationException;
 import com.ninjaone.dundie_awards.exception.OrganizationNotFoundException;
 import com.ninjaone.dundie_awards.mapper.EmployeeMapper;
+import com.ninjaone.dundie_awards.mapper.OrganizationMapper;
 import com.ninjaone.dundie_awards.model.AwardType;
 import com.ninjaone.dundie_awards.model.Employee;
 import com.ninjaone.dundie_awards.model.Organization;
@@ -15,6 +17,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,17 +43,93 @@ class OrganizationServiceTest {
     private OrganizationRepository organizationRepository;
 
     private EmployeeMapper employeeMapper;
+    private OrganizationMapper organizationMapper;
 
     private OrganizationService organizationService;
 
     @BeforeEach
     void setUp() {
         employeeMapper = Mappers.getMapper(EmployeeMapper.class);
+        organizationMapper = Mappers.getMapper(OrganizationMapper.class);
         organizationService = new OrganizationService(
                 employeeRepository,
                 organizationRepository,
-                employeeMapper
+                employeeMapper,
+                organizationMapper
         );
+    }
+
+    @Test
+    void testGetAllOrganizations() {
+        // Given
+        Organization org1 = Organization.builder()
+                .name("Organization 1")
+                .build();
+        Organization org2 = Organization.builder()
+                .name("Organization 2")
+                .build();
+        List<Organization> organizations = Arrays.asList(org1, org2);
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Organization> organizationPage = new PageImpl<>(organizations, pageable, organizations.size());
+
+        when(organizationRepository.findAll(any(Pageable.class))).thenReturn(organizationPage);
+
+        // When
+        Page<OrganizationDto> result = organizationService.getAllOrganizations(pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        // Use real mapper to create expected DTOs for comparison
+        List<OrganizationDto> expectedDtos = organizationMapper.toDtoList(organizations);
+        assertThat(result.getContent()).isEqualTo(expectedDtos);
+        verify(organizationRepository).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void testGetAllOrganizationsWhenEmpty() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Organization> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        when(organizationRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
+
+        // When
+        Page<OrganizationDto> result = organizationService.getAllOrganizations(pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+        verify(organizationRepository).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void testGetAllOrganizationsWithPagination() {
+        // Given
+        List<Organization> organizations = Arrays.asList(
+                Organization.builder().name("Org 1").build(),
+                Organization.builder().name("Org 2").build()
+        );
+        
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Organization> firstPage = new PageImpl<>(organizations.subList(0, 1), pageable, 2);
+
+        when(organizationRepository.findAll(any(Pageable.class))).thenReturn(firstPage);
+
+        // When
+        Page<OrganizationDto> result = organizationService.getAllOrganizations(pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(2);
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+        verify(organizationRepository).findAll(any(Pageable.class));
     }
 
     @Test
@@ -95,7 +177,7 @@ class OrganizationServiceTest {
         when(employeeRepository.saveAll(anyList())).thenReturn(savedEmployees);
 
         // When
-        List<EmployeeDto> result = organizationService.awardAllEmployeesInOrganization(1L, "INNOVATION");
+        List<EmployeeDto> result = organizationService.awardAllEmployeesInOrganization(1L, AwardType.INNOVATION);
 
         // Then
         assertThat(result).isNotNull();
@@ -132,7 +214,7 @@ class OrganizationServiceTest {
         when(employeeRepository.findByOrganizationId(1L)).thenReturn(List.of());
 
         // When/Then
-        assertThatThrownBy(() -> organizationService.awardAllEmployeesInOrganization(1L, "INNOVATION"))
+        assertThatThrownBy(() -> organizationService.awardAllEmployeesInOrganization(1L, AwardType.INNOVATION))
                 .isInstanceOf(BusinessValidationException.class)
                 .hasMessage("Organization 1 has no employees to award");
 
@@ -147,30 +229,11 @@ class OrganizationServiceTest {
         when(organizationRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When/Then
-        assertThatThrownBy(() -> organizationService.awardAllEmployeesInOrganization(999L, "INNOVATION"))
+        assertThatThrownBy(() -> organizationService.awardAllEmployeesInOrganization(999L, AwardType.INNOVATION))
                 .isInstanceOf(OrganizationNotFoundException.class)
                 .hasMessage("Organization with id 999 not found");
 
         verify(organizationRepository).findById(999L);
-        verify(employeeRepository, never()).findByOrganizationId(any(Long.class));
-        verify(employeeRepository, never()).saveAll(anyList());
-    }
-
-    @Test
-    void testAwardAllEmployeesInOrganization_AwardTypeNotFound() {
-        // Given
-        Organization testOrganization = Organization.builder()
-                .name("Test Organization")
-                .build();
-
-        when(organizationRepository.findById(1L)).thenReturn(Optional.of(testOrganization));
-
-        // When/Then
-        assertThatThrownBy(() -> organizationService.awardAllEmployeesInOrganization(1L, "INVALID_AWARD_TYPE"))
-                .isInstanceOf(BusinessValidationException.class)
-                .hasMessage("Unknown award type: INVALID_AWARD_TYPE");
-
-        verify(organizationRepository).findById(1L);
         verify(employeeRepository, never()).findByOrganizationId(any(Long.class));
         verify(employeeRepository, never()).saveAll(anyList());
     }
@@ -201,8 +264,8 @@ class OrganizationServiceTest {
         when(employeeRepository.findByOrganizationId(1L)).thenReturn(employees);
         when(employeeRepository.saveAll(anyList())).thenReturn(Arrays.asList(savedEmployee));
 
-        // When - using lowercase award type
-        List<EmployeeDto> result = organizationService.awardAllEmployeesInOrganization(1L, "innovation");
+        // When
+        List<EmployeeDto> result = organizationService.awardAllEmployeesInOrganization(1L, AwardType.INNOVATION);
 
         // Then
         assertThat(result).isNotNull();
@@ -211,7 +274,7 @@ class OrganizationServiceTest {
         verify(employeeRepository).findByOrganizationId(1L);
         verify(employeeRepository).saveAll(anyList());
         
-        // Verify award type was correctly parsed (case-insensitive)
+        // Verify award type was correctly set
         assertThat(employee1.getAwards()).hasSize(1);
         assertThat(employee1.getAwards().get(0).getType()).isEqualTo(AwardType.INNOVATION);
     }

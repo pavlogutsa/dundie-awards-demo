@@ -32,10 +32,28 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/employees",
+              "raw": "{{base_url}}/api/employees?page=0&size=20&sort=id,asc",
               "host": ["{{base_url}}"],
-              "path": ["api", "employees"]
-            }
+              "path": ["api", "employees"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-indexed)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction (format: field,direction)"
+                }
+              ]
+            },
+            "description": "Returns paginated list of employees. Default: page=0, size=20, sort=id,asc"
           }
         },
         {
@@ -150,6 +168,36 @@
       "name": "Organizations",
       "item": [
         {
+          "name": "GET /api/organizations - list organizations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/organizations?page=0&size=20&sort=id,asc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizations"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-indexed)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc",
+                  "description": "Sort field and direction (format: field,direction)"
+                }
+              ]
+            },
+            "description": "Returns paginated list of organizations. Default: page=0, size=20, sort=id,asc"
+          }
+        },
+        {
           "name": "POST /api/organizations/{organizationId}/awards - award all employees in organization",
           "request": {
             "method": "POST",
@@ -180,24 +228,28 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/activities",
+              "raw": "{{base_url}}/api/activities?page=0&size=20&sort=occurredAt,desc",
               "host": ["{{base_url}}"],
-              "path": ["api", "activities"]
+              "path": ["api", "activities"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-indexed)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Page size"
+                },
+                {
+                  "key": "sort",
+                  "value": "occurredAt,desc",
+                  "description": "Sort field and direction (format: field,direction). Default: occurredAt,desc (most recent first)"
+                }
+              ]
             },
-            "description": "Activities are read-only. They are created automatically when employees are awarded or awards are removed."
-          }
-        },
-        {
-          "name": "GET /api/activities/{id} - get activity by id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/activities/{{activityId}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "activities", "{{activityId}}"]
-            },
-            "description": "Activities are read-only. They are created automatically when employees are awarded or awards are removed."
+            "description": "Returns paginated list of activities. Activities are read-only. They are created automatically when employees are awarded or awards are removed. Default: page=0, size=20, sort=occurredAt,desc"
           }
         }
       ]

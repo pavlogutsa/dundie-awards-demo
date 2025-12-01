@@ -27,6 +27,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.mockito.ArgumentMatcher;
@@ -83,33 +88,80 @@ class EmployeeServiceTest {
                 .organization(testOrganization)
                 .build();
         List<Employee> employees = Arrays.asList(testEmployee, employee2);
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Employee> employeePage = new PageImpl<>(employees, pageable, employees.size());
 
-        when(employeeRepository.findAll()).thenReturn(employees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(employeePage);
 
         // When
-        List<EmployeeDto> result = employeeService.getAllEmployees();
+        Page<EmployeeDto> result = employeeService.getAllEmployees(pageable);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(1);
         // Use real mapper to create expected DTOs for comparison
         List<EmployeeDto> expectedDtos = employeeMapper.toDtoList(employees);
-        assertThat(result).isEqualTo(expectedDtos);
-        verify(employeeRepository).findAll();
+        assertThat(result.getContent()).isEqualTo(expectedDtos);
+        verify(employeeRepository).findAll(any(Pageable.class));
     }
 
     @Test
     void testGetAllEmployeesWhenEmpty() {
         // Given
-        when(employeeRepository.findAll()).thenReturn(List.of());
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Employee> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
 
         // When
-        List<EmployeeDto> result = employeeService.getAllEmployees();
+        Page<EmployeeDto> result = employeeService.getAllEmployees(pageable);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-        verify(employeeRepository).findAll();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+        verify(employeeRepository).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void testGetAllEmployeesWithPagination() {
+        // Given
+        Organization testOrganization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        List<Employee> employees = Arrays.asList(
+                Employee.builder()
+                        .firstName("John")
+                        .lastName("Doe")
+                        .organization(testOrganization)
+                        .dundieAwards(0)
+                        .build(),
+                Employee.builder()
+                        .firstName("Jane")
+                        .lastName("Smith")
+                        .organization(testOrganization)
+                        .dundieAwards(1)
+                        .build()
+        );
+        
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Employee> firstPage = new PageImpl<>(employees.subList(0, 1), pageable, 2);
+
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(firstPage);
+
+        // When
+        Page<EmployeeDto> result = employeeService.getAllEmployees(pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(2);
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+        verify(employeeRepository).findAll(any(Pageable.class));
     }
 
     @Test

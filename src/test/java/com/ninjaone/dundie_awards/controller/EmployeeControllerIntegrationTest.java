@@ -80,8 +80,110 @@ class EmployeeControllerIntegrationTest {
         mockMvc.perform(get("/api/employees"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.first").value(true))
+                .andExpect(jsonPath("$.last").value(true));
+    }
+
+    @Test
+    void testGetAllEmployeesWithPagination() throws Exception {
+        // Given - create 5 employees
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        
+        for (int i = 0; i < 5; i++) {
+            Employee employee = Employee.builder()
+                    .firstName("Employee" + i)
+                    .lastName("Last" + i)
+                    .organization(organization)
+                    .dundieAwards(0)
+                    .build();
+            employeeRepository.save(employee);
+        }
+
+        // Test first page with size 2
+        mockMvc.perform(get("/api/employees")
+                        .param("page", "0")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.totalElements").value(5))
+                .andExpect(jsonPath("$.totalPages").value(3))
+                .andExpect(jsonPath("$.first").value(true))
+                .andExpect(jsonPath("$.last").value(false));
+
+        // Test second page
+        mockMvc.perform(get("/api/employees")
+                        .param("page", "1")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.totalElements").value(5))
+                .andExpect(jsonPath("$.totalPages").value(3))
+                .andExpect(jsonPath("$.first").value(false))
+                .andExpect(jsonPath("$.last").value(false));
+
+        // Test last page
+        mockMvc.perform(get("/api/employees")
+                        .param("page", "2")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.page").value(2))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.totalElements").value(5))
+                .andExpect(jsonPath("$.totalPages").value(3))
+                .andExpect(jsonPath("$.first").value(false))
+                .andExpect(jsonPath("$.last").value(true));
+    }
+
+    @Test
+    void testGetAllEmployeesWithSorting() throws Exception {
+        // Given
+        Organization organization = Organization.builder()
+                .name("Test Organization")
+                .build();
+        organization = organizationRepository.save(organization);
+        Employee employee1 = Employee.builder()
+                .firstName("Alice")
+                .lastName("Zebra")
+                .organization(organization)
+                .dundieAwards(0)
+                .build();
+        employeeRepository.save(employee1);
+        Employee employee2 = Employee.builder()
+                .firstName("Bob")
+                .lastName("Alpha")
+                .organization(organization)
+                .dundieAwards(1)
+                .build();
+        employeeRepository.save(employee2);
+
+        // Test default sort (id,asc)
+        mockMvc.perform(get("/api/employees"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.items[0].id").value(employee1.getId()))
+                .andExpect(jsonPath("$.items[1].id").value(employee2.getId()));
+
+        // Test sorting by firstName descending
+        mockMvc.perform(get("/api/employees")
+                        .param("sort", "firstName,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.items[0].firstName").value("Bob"))
+                .andExpect(jsonPath("$.items[1].firstName").value("Alice"));
     }
 
     @Test

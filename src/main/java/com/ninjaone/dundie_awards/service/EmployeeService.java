@@ -16,6 +16,11 @@ import com.ninjaone.dundie_awards.model.Organization;
 import com.ninjaone.dundie_awards.repository.ActivityRepository;
 import com.ninjaone.dundie_awards.repository.EmployeeRepository;
 import com.ninjaone.dundie_awards.repository.OrganizationRepository;
+
+import lombok.NonNull;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,8 +48,9 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly=true)
-    public List<EmployeeDto> getAllEmployees() {
-        return employeeMapper.toDtoList(employeeRepository.findAll());
+    public Page<EmployeeDto> getAllEmployees(@NonNull Pageable pageable) {
+        return employeeRepository.findAll(pageable)
+                .map(employeeMapper::toDto);
     }
 
     @Transactional(readOnly=true)

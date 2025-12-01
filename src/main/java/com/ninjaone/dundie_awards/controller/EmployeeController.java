@@ -1,17 +1,14 @@
 package com.ninjaone.dundie_awards.controller;
 
-import com.ninjaone.dundie_awards.dto.ApiError;
 import com.ninjaone.dundie_awards.dto.AwardRequest;
 import com.ninjaone.dundie_awards.dto.EmployeeDto;
 import com.ninjaone.dundie_awards.dto.EmployeeRequest;
-import com.ninjaone.dundie_awards.exception.EmployeeNotFoundException;
+import com.ninjaone.dundie_awards.dto.PageResponse;
 import com.ninjaone.dundie_awards.service.EmployeeService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -24,8 +21,8 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public List<EmployeeDto> getEmployees() {
-        return service.getAllEmployees();
+    public PageResponse<EmployeeDto> getAllEmployees(Pageable pageable) {
+        return PageResponse.from(service.getAllEmployees(pageable));
     }
 
     @GetMapping("/{id}")

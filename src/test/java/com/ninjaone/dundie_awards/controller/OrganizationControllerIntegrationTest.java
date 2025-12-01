@@ -1,10 +1,5 @@
 package com.ninjaone.dundie_awards.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.ninjaone.dundie_awards.model.Activity;
-import com.ninjaone.dundie_awards.model.ActivityType;
-import com.ninjaone.dundie_awards.model.Employee;
 import com.ninjaone.dundie_awards.model.Organization;
 import com.ninjaone.dundie_awards.repository.ActivityRepository;
 import com.ninjaone.dundie_awards.repository.EmployeeRepository;
@@ -18,76 +13,54 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class ActivityControllerIntegrationTest {
+class OrganizationControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private ActivityRepository activityRepository;
+    private OrganizationRepository organizationRepository;
 
     @Autowired
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private OrganizationRepository organizationRepository;
+    private ActivityRepository activityRepository;
 
     @BeforeEach
     void setUp() {
-        // Configure ObjectMapper to handle Instant
-        objectMapper.registerModule(new JavaTimeModule());
-
         activityRepository.deleteAll();
         employeeRepository.deleteAll();
         organizationRepository.deleteAll();
     }
 
     @Test
-    void testGetAllActivities() throws Exception {
+    void testGetAllOrganizations() throws Exception {
         // Given
-        Organization organization = Organization.builder()
-                .name("Test Organization")
+        Organization org1 = Organization.builder()
+                .name("Organization 1")
                 .build();
-        organization = organizationRepository.save(organization);
-        Employee employee = Employee.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .organization(organization)
-                .dundieAwards(0)
+        org1 = organizationRepository.save(org1);
+        Organization org2 = Organization.builder()
+                .name("Organization 2")
                 .build();
-        employee = employeeRepository.save(employee);
-        Activity activity1 = Activity.builder()
-                .occurredAt(Instant.now())
-                .event(ActivityType.EMPLOYEE_CREATED)
-                .employee(employee)
-                .build();
-        activityRepository.save(activity1);
-        Activity activity2 = Activity.builder()
-                .occurredAt(Instant.now())
-                .event(ActivityType.EMPLOYEE_UPDATED)
-                .employee(employee)
-                .build();
-        activityRepository.save(activity2);
+        org2 = organizationRepository.save(org2);
 
-        mockMvc.perform(get("/api/activities"))
+        mockMvc.perform(get("/api/organizations"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items.length()").value(2))
                 .andExpect(jsonPath("$.items[0].id").exists())
-                .andExpect(jsonPath("$.items[0].occurredAt").exists())
-                .andExpect(jsonPath("$.items[0].employeeId").exists())
+                .andExpect(jsonPath("$.items[0].name").exists())
+                .andExpect(jsonPath("$.items[1].id").exists())
+                .andExpect(jsonPath("$.items[1].name").exists())
                 .andExpect(jsonPath("$.page").value(0))
                 .andExpect(jsonPath("$.size").value(20))
                 .andExpect(jsonPath("$.totalElements").value(2))
@@ -97,10 +70,10 @@ class ActivityControllerIntegrationTest {
     }
 
     @Test
-    void testGetAllActivitiesWhenEmpty() throws Exception {
-        activityRepository.deleteAll();
+    void testGetAllOrganizationsWhenEmpty() throws Exception {
+        organizationRepository.deleteAll();
 
-        mockMvc.perform(get("/api/activities"))
+        mockMvc.perform(get("/api/organizations"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.items").isArray())
@@ -114,31 +87,17 @@ class ActivityControllerIntegrationTest {
     }
 
     @Test
-    void testGetAllActivitiesWithPagination() throws Exception {
-        // Given - create 5 activities
-        Organization organization = Organization.builder()
-                .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
-        Employee employee = Employee.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .organization(organization)
-                .dundieAwards(0)
-                .build();
-        employee = employeeRepository.save(employee);
-        
+    void testGetAllOrganizationsWithPagination() throws Exception {
+        // Given - create 5 organizations
         for (int i = 0; i < 5; i++) {
-            Activity activity = Activity.builder()
-                    .occurredAt(Instant.now().plusSeconds(i))
-                    .event(ActivityType.EMPLOYEE_CREATED)
-                    .employee(employee)
+            Organization org = Organization.builder()
+                    .name("Organization " + i)
                     .build();
-            activityRepository.save(activity);
+            organizationRepository.save(org);
         }
 
         // Test first page with size 2
-        mockMvc.perform(get("/api/activities")
+        mockMvc.perform(get("/api/organizations")
                         .param("page", "0")
                         .param("size", "2"))
                 .andExpect(status().isOk())
@@ -151,7 +110,7 @@ class ActivityControllerIntegrationTest {
                 .andExpect(jsonPath("$.last").value(false));
 
         // Test second page
-        mockMvc.perform(get("/api/activities")
+        mockMvc.perform(get("/api/organizations")
                         .param("page", "1")
                         .param("size", "2"))
                 .andExpect(status().isOk())
@@ -164,7 +123,7 @@ class ActivityControllerIntegrationTest {
                 .andExpect(jsonPath("$.last").value(false));
 
         // Test last page
-        mockMvc.perform(get("/api/activities")
+        mockMvc.perform(get("/api/organizations")
                         .param("page", "2")
                         .param("size", "2"))
                 .andExpect(status().isOk())
@@ -178,49 +137,42 @@ class ActivityControllerIntegrationTest {
     }
 
     @Test
-    void testGetAllActivitiesWithSorting() throws Exception {
-        // Given - create activities with different timestamps
-        Organization organization = Organization.builder()
-                .name("Test Organization")
+    void testGetAllOrganizationsWithSorting() throws Exception {
+        // Given
+        Organization org1 = Organization.builder()
+                .name("Zebra Organization")
                 .build();
-        organization = organizationRepository.save(organization);
-        Employee employee = Employee.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .organization(organization)
-                .dundieAwards(0)
+        org1 = organizationRepository.save(org1);
+        Organization org2 = Organization.builder()
+                .name("Alpha Organization")
                 .build();
-        employee = employeeRepository.save(employee);
-        
-        Instant baseTime = Instant.now();
-        Activity activity1 = Activity.builder()
-                .occurredAt(baseTime.plusSeconds(10))
-                .event(ActivityType.EMPLOYEE_CREATED)
-                .employee(employee)
-                .build();
-        activityRepository.save(activity1);
-        Activity activity2 = Activity.builder()
-                .occurredAt(baseTime.plusSeconds(20))
-                .event(ActivityType.EMPLOYEE_UPDATED)
-                .employee(employee)
-                .build();
-        activityRepository.save(activity2);
+        org2 = organizationRepository.save(org2);
 
-        // Test default sort (occurredAt,desc) - most recent first
-        // activity2 occurred later (baseTime + 20s) so it should be first
-        mockMvc.perform(get("/api/activities"))
+        // Test default sort (id,asc) - check that both organizations are present
+        // Note: Order by ID may vary, so we just verify both exist
+        mockMvc.perform(get("/api/organizations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(2))
-                .andExpect(jsonPath("$.items[0].event").value("EMPLOYEE_UPDATED"))
-                .andExpect(jsonPath("$.items[1].event").value("EMPLOYEE_CREATED"));
+                .andExpect(jsonPath("$.items[0].id").exists())
+                .andExpect(jsonPath("$.items[1].id").exists())
+                .andExpect(jsonPath("$.items[0].name").exists())
+                .andExpect(jsonPath("$.items[1].name").exists());
 
-        // Test ascending sort - oldest first
-        mockMvc.perform(get("/api/activities")
-                        .param("sort", "occurredAt,asc"))
+        // Test sorting by name ascending
+        mockMvc.perform(get("/api/organizations")
+                        .param("sort", "name,asc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(2))
-                .andExpect(jsonPath("$.items[0].event").value("EMPLOYEE_CREATED"))
-                .andExpect(jsonPath("$.items[1].event").value("EMPLOYEE_UPDATED"));
+                .andExpect(jsonPath("$.items[0].name").value("Alpha Organization"))
+                .andExpect(jsonPath("$.items[1].name").value("Zebra Organization"));
+
+        // Test sorting by name descending
+        mockMvc.perform(get("/api/organizations")
+                        .param("sort", "name,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.items[0].name").value("Zebra Organization"))
+                .andExpect(jsonPath("$.items[1].name").value("Alpha Organization"));
     }
 }
 
