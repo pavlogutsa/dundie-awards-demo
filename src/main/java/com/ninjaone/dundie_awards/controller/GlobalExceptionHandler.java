@@ -5,6 +5,7 @@ import com.ninjaone.dundie_awards.exception.ActivityNotFoundException;
 import com.ninjaone.dundie_awards.exception.BusinessValidationException;
 import com.ninjaone.dundie_awards.exception.EmployeeNotFoundException;
 import com.ninjaone.dundie_awards.exception.OrganizationNotFoundException;
+import com.ninjaone.dundie_awards.exception.RateLimitExceededException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +60,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ApiError(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiError> handleRateLimitExceeded(RateLimitExceededException ex) {
+        log.warn("Rate limit exceeded: {}", ex.getMessage());
+        ResponseEntity<ApiError> response = ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(new ApiError(429, ex.getMessage()));
+        response.getHeaders().add("Retry-After", String.valueOf(ex.getRetryAfterSeconds()));
+        return response;
     }
 
     @ExceptionHandler(Exception.class)
