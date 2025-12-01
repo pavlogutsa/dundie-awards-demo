@@ -7,9 +7,9 @@ import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,27 +18,18 @@ import java.util.function.Supplier;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 @ConditionalOnProperty(name = "rate-limit.write-operations.enabled", havingValue = "true", matchIfMissing = true)
 public class RateLimitConfig {
 
-    @Value("${rate-limit.write-operations.requests:100}")
-    private int requestsPerMinute;
-
-    @Value("${rate-limit.write-operations.window-minutes:1}")
-    private int windowMinutes;
-
-    @Value("${rate-limit.write-operations.enabled:true}")
-    private boolean enabled;
-
-    @Value("${spring.data.redis.host:localhost}")
-    private String redisHost;
-
-    @Value("${spring.data.redis.port:6379}")
-    private int redisPort;
+    private final RateLimitProperties rateLimitProperties;
+    private final RedisConnectionProperties redisConnectionProperties;
 
     @Bean(destroyMethod = "shutdown")
     public RedisClient redisClient() {
-        String redisUrl = String.format("redis://%s:%d", redisHost, redisPort);
+        String redisUrl = String.format("redis://%s:%d", 
+            redisConnectionProperties.getHost(), 
+            redisConnectionProperties.getPort());
         log.info("Initializing Redis client for Bucket4j at {}", redisUrl);
         return RedisClient.create(redisUrl);
     }
@@ -54,7 +45,7 @@ public class RateLimitConfig {
         log.info("Initializing Bucket4j Redis ProxyManager");
         return LettuceBasedProxyManager.builderFor(connection)
             .withExpirationStrategy(ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(
-                Duration.ofMinutes(windowMinutes * 2)))
+                Duration.ofMinutes(rateLimitProperties.getWindowMinutes() * 2)))
             .build();
     }
 
@@ -62,8 +53,9 @@ public class RateLimitConfig {
     public Supplier<BucketConfiguration> bucketConfigurationSupplier() {
         return () -> {
             Bandwidth limit = Bandwidth.builder()
-                .capacity(requestsPerMinute)
-                .refillIntervally(requestsPerMinute, Duration.ofMinutes(windowMinutes))
+                .capacity(rateLimitProperties.getRequests())
+                .refillIntervally(rateLimitProperties.getRequests(), 
+                    Duration.ofMinutes(rateLimitProperties.getWindowMinutes()))
                 .build();
             return BucketConfiguration.builder()
                 .addLimit(limit)
@@ -72,15 +64,15 @@ public class RateLimitConfig {
     }
 
     public int getRequestsPerMinute() {
-        return requestsPerMinute;
+        return rateLimitProperties.getRequests();
     }
 
     public int getWindowMinutes() {
-        return windowMinutes;
+        return rateLimitProperties.getWindowMinutes();
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return rateLimitProperties.isEnabled();
     }
 }
 
