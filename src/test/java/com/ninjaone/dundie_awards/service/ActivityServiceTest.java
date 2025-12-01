@@ -19,6 +19,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import lombok.NonNull;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class ActivityServiceTest {
 
     @Mock
@@ -72,8 +75,8 @@ class ActivityServiceTest {
                 .employee(testEmployee)
                 .build();
         List<Activity> activities = Arrays.asList(testActivity, activity);
-        Pageable pageable = PageRequest.of(0, 20);
-        Page<Activity> activityPage = new PageImpl<>(activities, pageable, activities.size());
+        @NonNull Pageable pageable = PageRequest.of(0, 20);
+        @NonNull Page<Activity> activityPage = new PageImpl<>(activities, pageable, activities.size());
 
         when(activityRepository.findAll(any(Pageable.class))).thenReturn(activityPage);
 
@@ -94,8 +97,8 @@ class ActivityServiceTest {
     @Test
     void testGetAllActivitiesWhenEmpty() {
         // Given
-        Pageable pageable = PageRequest.of(0, 20);
-        Page<Activity> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        @NonNull Pageable pageable = PageRequest.of(0, 20);
+        @NonNull Page<Activity> emptyPage = new PageImpl<>(List.of(), pageable, 0);
         when(activityRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
 
         // When
@@ -135,8 +138,8 @@ class ActivityServiceTest {
                         .build()
         );
         
-        Pageable pageable = PageRequest.of(0, 1);
-        Page<Activity> firstPage = new PageImpl<>(activities.subList(0, 1), pageable, 2);
+        @NonNull Pageable pageable = PageRequest.of(0, 1);
+        @NonNull Page<Activity> firstPage = new PageImpl<>(activities.subList(0, 1), pageable, 2);
 
         when(activityRepository.findAll(any(Pageable.class))).thenReturn(firstPage);
 

@@ -11,6 +11,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("null")
 public class DataLoader implements CommandLineRunner {
 
     private final EmployeeRepository employeeRepository;
@@ -28,10 +29,9 @@ public class DataLoader implements CommandLineRunner {
         // organizationRepository.deleteAll();
 
         if (employeeRepository.count() == 0) {
-            @NonNull Organization organizationPikashu = Organization.builder()
+            @NonNull Organization organizationPikashu = organizationRepository.save(Organization.builder()
                     .name("Pikashu")
-                    .build();
-            organizationRepository.save(organizationPikashu);
+                    .build());
 
             employeeRepository.save(Employee.builder()
                     .firstName("John")
@@ -52,10 +52,9 @@ public class DataLoader implements CommandLineRunner {
                     .dundieAwards(0)
                     .build());
 
-            Organization organizationSquanchy = Organization.builder()
+            @NonNull Organization organizationSquanchy = organizationRepository.save(Organization.builder()
                     .name("Squanchy")
-                    .build();
-            organizationRepository.save(organizationSquanchy);
+                    .build());
 
             employeeRepository.save(Employee.builder()
                     .firstName("Michael")

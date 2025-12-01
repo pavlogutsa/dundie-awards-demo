@@ -20,12 +20,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+import lombok.NonNull;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@SuppressWarnings("null")
 class ActivityControllerIntegrationTest {
 
     @Autowired
@@ -56,17 +59,15 @@ class ActivityControllerIntegrationTest {
     @Test
     void testGetAllActivities() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
-        Employee employee = Employee.builder()
+                .build());
+        @NonNull Employee employee = employeeRepository.save(Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
                 .organization(organization)
                 .dundieAwards(0)
-                .build();
-        employee = employeeRepository.save(employee);
+                .build());
         Activity activity1 = Activity.builder()
                 .occurredAt(Instant.now())
                 .event(ActivityType.EMPLOYEE_CREATED)
@@ -116,17 +117,15 @@ class ActivityControllerIntegrationTest {
     @Test
     void testGetAllActivitiesWithPagination() throws Exception {
         // Given - create 5 activities
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
-        Employee employee = Employee.builder()
+                .build());
+        @NonNull Employee employee = employeeRepository.save(Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
                 .organization(organization)
                 .dundieAwards(0)
-                .build();
-        employee = employeeRepository.save(employee);
+                .build());
         
         for (int i = 0; i < 5; i++) {
             Activity activity = Activity.builder()
@@ -180,17 +179,15 @@ class ActivityControllerIntegrationTest {
     @Test
     void testGetAllActivitiesWithSorting() throws Exception {
         // Given - create activities with different timestamps
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
-        Employee employee = Employee.builder()
+                .build());
+        @NonNull Employee employee = employeeRepository.save(Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
                 .organization(organization)
                 .dundieAwards(0)
-                .build();
-        employee = employeeRepository.save(employee);
+                .build());
         
         Instant baseTime = Instant.now();
         Activity activity1 = Activity.builder()

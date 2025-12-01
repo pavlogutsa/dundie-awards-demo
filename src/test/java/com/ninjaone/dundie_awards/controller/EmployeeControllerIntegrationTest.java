@@ -23,7 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
+
+import lombok.NonNull;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@SuppressWarnings("null")
 class EmployeeControllerIntegrationTest {
 
     @Autowired
@@ -59,10 +61,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testGetAllEmployees() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee1 = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -94,10 +95,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testGetAllEmployeesWithPagination() throws Exception {
         // Given - create 5 employees
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         
         for (int i = 0; i < 5; i++) {
             Employee employee = Employee.builder()
@@ -152,10 +152,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testGetAllEmployeesWithSorting() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee1 = Employee.builder()
                 .firstName("Alice")
                 .lastName("Zebra")
@@ -190,10 +189,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testGetEmployeeById() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -227,12 +225,11 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testCreateEmployee() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         EmployeeRequest request = new EmployeeRequest("Alice", "Johnson", organization.getId());
-        String requestJson = Objects.requireNonNull(objectMapper.writeValueAsString(request));
+        String requestJson = objectMapper.writeValueAsString(request);
 
         String response = mockMvc.perform(post("/api/employees")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -257,13 +254,12 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testCreateEmployeeWithInvalidData() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         // Missing firstName
         EmployeeRequest invalidRequest = new EmployeeRequest("", "Johnson", organization.getId());
-        String invalidRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(invalidRequest));
+        String invalidRequestJson = objectMapper.writeValueAsString(invalidRequest);
 
         mockMvc.perform(post("/api/employees")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -274,7 +270,7 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testCreateEmployeeWithNonExistentOrganization() throws Exception {
         EmployeeRequest request = new EmployeeRequest("Alice", "Johnson", 999L);
-        String requestJson = Objects.requireNonNull(objectMapper.writeValueAsString(request));
+        String requestJson = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/api/employees")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -288,10 +284,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testUpdateEmployee() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -300,7 +295,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         EmployeeRequest updateRequest = new EmployeeRequest("John", "Updated", organization.getId());
-        String updateRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(updateRequest));
+        String updateRequestJson = objectMapper.writeValueAsString(updateRequest);
 
         String response = mockMvc.perform(put("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -316,19 +311,18 @@ class EmployeeControllerIntegrationTest {
                 .getContentAsString();
 
         EmployeeDto updatedEmployee = objectMapper.readValue(response, EmployeeDto.class);
-        Employee savedEmployee = employeeRepository.findById(updatedEmployee.id()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(updatedEmployee.id()).orElseThrow();
         assertThat(savedEmployee.getLastName()).isEqualTo("Updated");
     }
 
     @Test
     void testUpdateEmployeeNotFound() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         EmployeeRequest updateRequest = new EmployeeRequest("John", "Updated", organization.getId());
-        String updateRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(updateRequest));
+        String updateRequestJson = objectMapper.writeValueAsString(updateRequest);
 
         mockMvc.perform(put("/api/employees/{id}", 999L)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -342,10 +336,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testUpdateEmployeeWithInvalidData() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -354,7 +347,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         EmployeeRequest invalidRequest = new EmployeeRequest("", "Updated", organization.getId());
-        String invalidRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(invalidRequest));
+        String invalidRequestJson = objectMapper.writeValueAsString(invalidRequest);
 
         mockMvc.perform(put("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -365,10 +358,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testDeleteEmployee() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -396,10 +388,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testAwardEmployee() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -411,7 +402,7 @@ class EmployeeControllerIntegrationTest {
         assertThat(employee.getDundieAwards()).isEqualTo(0);
 
         AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
-        String awardRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest));
+        String awardRequestJson = objectMapper.writeValueAsString(awardRequest);
         String response = mockMvc.perform(post("/api/employees/{id}/awards", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(awardRequestJson))
@@ -427,7 +418,7 @@ class EmployeeControllerIntegrationTest {
         assertThat(awardedEmployee.dundieAwards()).isEqualTo(1);
 
         // Verify in database
-        Employee savedEmployee = employeeRepository.findById(employee.getId()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(employee.getId()).orElseThrow();
         assertThat(savedEmployee.getDundieAwards()).isEqualTo(1);
 
         // Verify activity was created with the specified type
@@ -440,10 +431,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testAwardEmployeeMultipleTimes() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -453,7 +443,7 @@ class EmployeeControllerIntegrationTest {
         employee = employeeRepository.save(employee);
         // Award first time
         AwardRequest awardRequest1 = new AwardRequest(AwardType.INNOVATION);
-        String awardRequest1Json = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest1));
+        String awardRequest1Json = objectMapper.writeValueAsString(awardRequest1);
         mockMvc.perform(post("/api/employees/{id}/awards", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(awardRequest1Json))
@@ -462,7 +452,7 @@ class EmployeeControllerIntegrationTest {
 
         // Award second time
         AwardRequest awardRequest2 = new AwardRequest(AwardType.COMPLETED_PROJECT);
-        String awardRequest2Json = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest2));
+        String awardRequest2Json = objectMapper.writeValueAsString(awardRequest2);
         mockMvc.perform(post("/api/employees/{id}/awards", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(awardRequest2Json))
@@ -470,7 +460,7 @@ class EmployeeControllerIntegrationTest {
                 .andExpect(jsonPath("$.dundieAwards").value(2));
 
         // Verify in database
-        Employee savedEmployee = employeeRepository.findById(employee.getId()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(employee.getId()).orElseThrow();
         assertThat(savedEmployee.getDundieAwards()).isEqualTo(2);
 
         // Verify activities were created with the specified types
@@ -479,16 +469,15 @@ class EmployeeControllerIntegrationTest {
         assertThat(activities).hasSize(2);
         assertThat(activities.stream().map(Activity::getEvent).toList())
                 .containsExactlyInAnyOrder(ActivityType.AWARD_GRANTED, ActivityType.AWARD_GRANTED);
-        assertThat(activities).allMatch(a -> a.getEmployee().getId() == employeeId);
+        assertThat(activities).allMatch(a -> employeeId.equals(a.getEmployee().getId()));
     }
 
     @Test
     void testAwardEmployeeWithNullAwards() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         // Create employee with null awards (don't set dundieAwards, leaving it null)
         Employee employeeWithNullAwards = Employee.builder()
                 .firstName("Bob")
@@ -499,7 +488,7 @@ class EmployeeControllerIntegrationTest {
         employeeWithNullAwards = employeeRepository.save(employeeWithNullAwards);
 
         AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
-        String awardRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest));
+        String awardRequestJson = objectMapper.writeValueAsString(awardRequest);
         mockMvc.perform(post("/api/employees/{id}/awards", employeeWithNullAwards.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(awardRequestJson))
@@ -519,7 +508,7 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testAwardEmployeeNotFound() throws Exception {
         AwardRequest awardRequest = new AwardRequest(AwardType.INNOVATION);
-        String awardRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(awardRequest));
+        String awardRequestJson = objectMapper.writeValueAsString(awardRequest);
         mockMvc.perform(post("/api/employees/{id}/awards", 999L)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(awardRequestJson))
@@ -532,10 +521,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testRemoveAward() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -557,7 +545,7 @@ class EmployeeControllerIntegrationTest {
         assertThat(updatedEmployee.dundieAwards()).isEqualTo(1);
 
         // Verify in database
-        Employee savedEmployee = employeeRepository.findById(employee.getId()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(employee.getId()).orElseThrow();
         assertThat(savedEmployee.getDundieAwards()).isEqualTo(1);
 
         // Verify activity was created
@@ -570,10 +558,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testRemoveAwardWithNoAwards() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -601,10 +588,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testPatchEmployeeWithFirstNameOnly() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -613,7 +599,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", null, null);
-        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+        String patchRequestJson = objectMapper.writeValueAsString(patchRequest);
 
         String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -629,7 +615,7 @@ class EmployeeControllerIntegrationTest {
                 .getContentAsString();
 
         EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
-        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
         assertThat(savedEmployee.getFirstName()).isEqualTo("Jane");
         assertThat(savedEmployee.getLastName()).isEqualTo("Doe");
     }
@@ -637,10 +623,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testPatchEmployeeWithLastNameOnly() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -649,7 +634,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, "Smith", null);
-        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+        String patchRequestJson = objectMapper.writeValueAsString(patchRequest);
 
         String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -665,7 +650,7 @@ class EmployeeControllerIntegrationTest {
                 .getContentAsString();
 
         EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
-        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
         assertThat(savedEmployee.getFirstName()).isEqualTo("John");
         assertThat(savedEmployee.getLastName()).isEqualTo("Smith");
     }
@@ -673,10 +658,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testPatchEmployeeWithOrganizationIdOnly() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Organization newOrganization = Organization.builder()
                 .name("New Organization")
                 .build();
@@ -689,7 +673,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, newOrganization.getId());
-        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+        String patchRequestJson = objectMapper.writeValueAsString(patchRequest);
 
         String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -706,7 +690,7 @@ class EmployeeControllerIntegrationTest {
                 .getContentAsString();
 
         EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
-        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
         assertThat(savedEmployee.getFirstName()).isEqualTo("John");
         assertThat(savedEmployee.getLastName()).isEqualTo("Doe");
         assertThat(savedEmployee.getOrganization().getId()).isEqualTo(newOrganization.getId());
@@ -715,10 +699,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testPatchEmployeeWithMultipleFields() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Organization newOrganization = Organization.builder()
                 .name("New Organization")
                 .build();
@@ -731,7 +714,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", "Smith", newOrganization.getId());
-        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+        String patchRequestJson = objectMapper.writeValueAsString(patchRequest);
 
         String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -748,7 +731,7 @@ class EmployeeControllerIntegrationTest {
                 .getContentAsString();
 
         EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
-        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
         assertThat(savedEmployee.getFirstName()).isEqualTo("Jane");
         assertThat(savedEmployee.getLastName()).isEqualTo("Smith");
         assertThat(savedEmployee.getOrganization().getId()).isEqualTo(newOrganization.getId());
@@ -757,10 +740,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testPatchEmployeeWithAllNullFields() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -769,7 +751,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, null);
-        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+        String patchRequestJson = objectMapper.writeValueAsString(patchRequest);
 
         String response = mockMvc.perform(patch("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -785,7 +767,7 @@ class EmployeeControllerIntegrationTest {
                 .getContentAsString();
 
         EmployeeDto patchedEmployee = objectMapper.readValue(response, EmployeeDto.class);
-        Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
+        @NonNull Employee savedEmployee = employeeRepository.findById(patchedEmployee.id()).orElseThrow();
         assertThat(savedEmployee.getFirstName()).isEqualTo("John");
         assertThat(savedEmployee.getLastName()).isEqualTo("Doe");
     }
@@ -793,7 +775,7 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testPatchEmployeeNotFound() throws Exception {
         UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest("Jane", null, null);
-        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+        String patchRequestJson = objectMapper.writeValueAsString(patchRequest);
 
         mockMvc.perform(patch("/api/employees/{id}", 999L)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -807,10 +789,9 @@ class EmployeeControllerIntegrationTest {
     @Test
     void testPatchEmployeeWithNonExistentOrganization() throws Exception {
         // Given
-        Organization organization = Organization.builder()
+        @NonNull Organization organization = organizationRepository.save(Organization.builder()
                 .name("Test Organization")
-                .build();
-        organization = organizationRepository.save(organization);
+                .build());
         Employee employee = Employee.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -819,7 +800,7 @@ class EmployeeControllerIntegrationTest {
                 .build();
         employee = employeeRepository.save(employee);
         UpdateEmployeeRequest patchRequest = new UpdateEmployeeRequest(null, null, 999L);
-        String patchRequestJson = Objects.requireNonNull(objectMapper.writeValueAsString(patchRequest));
+        String patchRequestJson = objectMapper.writeValueAsString(patchRequest);
 
         mockMvc.perform(patch("/api/employees/{id}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)

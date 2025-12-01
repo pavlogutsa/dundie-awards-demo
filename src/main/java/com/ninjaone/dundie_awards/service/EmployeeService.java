@@ -28,11 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
@@ -61,7 +61,7 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly=true)
-    public EmployeeDto getEmployee(Long id) {
+    public EmployeeDto getEmployee(@NonNull Long id) {
         log.debug("Getting employee with id: {}", id);
         Employee e = employeeRepository.findById(id)
                 .orElseThrow(() -> {
@@ -76,8 +76,8 @@ public class EmployeeService {
         log.info("Creating employee: {} {} for organization {}", 
                 req.firstName(), req.lastName(), req.organizationId());
         try {
-            Long organizationId = Objects.requireNonNull(req.organizationId());
-            Organization org = organizationRepository.findById(organizationId)
+            @NonNull Long organizationId = req.organizationId();
+            @NonNull Organization org = organizationRepository.findById(organizationId)
                     .orElseThrow(() -> {
                         log.warn("Organization not found with id: {}", organizationId);
                         return new OrganizationNotFoundException(organizationId);
@@ -86,7 +86,8 @@ public class EmployeeService {
             Employee e = employeeMapper.fromCreateRequest(req);
             e.setOrganization(org);
 
-            EmployeeDto saved = employeeMapper.toDto(employeeRepository.save(e));
+            @NonNull Employee savedEmployee = employeeRepository.save(e);
+            EmployeeDto saved = employeeMapper.toDto(savedEmployee);
             log.info("Successfully created employee: {} {} (id: {})", 
                     saved.firstName(), saved.lastName(), saved.id());
             return saved;
@@ -96,7 +97,7 @@ public class EmployeeService {
         }
     }
 
-    public EmployeeDto updateEmployee(Long id, EmployeeRequest req) {
+    public EmployeeDto updateEmployee(@NonNull Long id, EmployeeRequest req) {
         log.info("Updating employee with id: {} to {} {}", id, req.firstName(), req.lastName());
         try {
             Employee e = employeeRepository.findById(id)
@@ -105,8 +106,8 @@ public class EmployeeService {
                         return new EmployeeNotFoundException(id);
                     });
 
-            Long organizationId = Objects.requireNonNull(req.organizationId());
-            Organization org = organizationRepository.findById(organizationId)
+            @NonNull Long organizationId = req.organizationId();
+            @NonNull Organization org = organizationRepository.findById(organizationId)
                     .orElseThrow(() -> {
                         log.warn("Organization not found with id: {}", organizationId);
                         return new OrganizationNotFoundException(organizationId);
@@ -115,7 +116,8 @@ public class EmployeeService {
             employeeMapper.updateEmployeeFromRequest(req, e);
             e.setOrganization(org);
 
-            EmployeeDto updated = employeeMapper.toDto(employeeRepository.save(e));
+            @NonNull Employee savedEmployee = employeeRepository.save(e);
+            EmployeeDto updated = employeeMapper.toDto(savedEmployee);
             log.info("Successfully updated employee (id: {})", updated.id());
             return updated;
         } catch (Exception e) {
@@ -124,7 +126,7 @@ public class EmployeeService {
         }
     }
 
-    public EmployeeDto patchEmployee(Long id, UpdateEmployeeRequest req) {
+    public EmployeeDto patchEmployee(@NonNull Long id, UpdateEmployeeRequest req) {
         log.info("Partially updating employee with id: {}", id);
         try {
             Employee e = employeeRepository.findById(id)
@@ -135,10 +137,11 @@ public class EmployeeService {
 
             // Only fetch and set organization if organizationId is provided
             if (req.organizationId() != null) {
-                Organization org = organizationRepository.findById(req.organizationId())
+                @NonNull Long organizationId = req.organizationId();
+                @NonNull Organization org = organizationRepository.findById(organizationId)
                         .orElseThrow(() -> {
-                            log.warn("Organization not found with id: {}", req.organizationId());
-                            return new OrganizationNotFoundException(req.organizationId());
+                            log.warn("Organization not found with id: {}", organizationId);
+                            return new OrganizationNotFoundException(organizationId);
                         });
                 e.setOrganization(org);
             }
@@ -146,7 +149,8 @@ public class EmployeeService {
             // Use mapper to update only non-null fields
             employeeMapper.updateEmployeeFromPartialRequest(req, e);
 
-            EmployeeDto updated = employeeMapper.toDto(employeeRepository.save(e));
+            @NonNull Employee savedEmployee = employeeRepository.save(e);
+            EmployeeDto updated = employeeMapper.toDto(savedEmployee);
             log.info("Successfully patched employee (id: {})", updated.id());
             return updated;
         } catch (Exception e) {
@@ -156,8 +160,8 @@ public class EmployeeService {
     }
 
     @Transactional
-    public List<EmployeeDto> awardAllEmployeesInOrganization(Long organizationId) {
-        Organization org = organizationRepository.findById(organizationId)
+    public List<EmployeeDto> awardAllEmployeesInOrganization(@NonNull Long organizationId) {
+        organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new OrganizationNotFoundException(organizationId));
 
         List<Employee> employees = employeeRepository.findByOrganizationId(organizationId);
@@ -188,7 +192,7 @@ public class EmployeeService {
         return employeeMapper.toDtoList(saved);
     }
 
-    public void deleteEmployee(Long id) {
+    public void deleteEmployee(@NonNull Long id) {
         log.info("Deleting employee with id: {}", id);
         try {
             Employee e = employeeRepository.findById(id)
@@ -205,7 +209,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public EmployeeDto awardEmployee(Long id, AwardRequest request) {
+    public EmployeeDto awardEmployee(@NonNull Long id, AwardRequest request) {
         log.info("Awarding employee with id: {} (award type: {})", id, request.awardType());
         try {
             Employee e = employeeRepository.findById(id)
@@ -220,7 +224,7 @@ public class EmployeeService {
             }
             e.setDundieAwards(current + 1);
 
-            Employee saved = employeeRepository.save(e);
+            @NonNull Employee saved = employeeRepository.save(e);
 
             // Create activity for the award with the specified activity type
             Activity activity = new Activity();
@@ -239,7 +243,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public EmployeeDto removeAward(Long id) {
+    public EmployeeDto removeAward(@NonNull Long id) {
         log.info("Removing award from employee with id: {}", id);
         try {
             Employee e = employeeRepository.findById(id)
@@ -256,7 +260,7 @@ public class EmployeeService {
             }
             e.setDundieAwards(current - 1);
 
-            Employee saved = employeeRepository.save(e);
+            @NonNull Employee saved = employeeRepository.save(e);
 
             // Create activity for the award removal
             Activity activity = new Activity();

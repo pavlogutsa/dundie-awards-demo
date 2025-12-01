@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@SuppressWarnings("null")
 class OrganizationControllerIntegrationTest {
 
     @Autowired
@@ -46,11 +47,11 @@ class OrganizationControllerIntegrationTest {
         Organization org1 = Organization.builder()
                 .name("Organization 1")
                 .build();
-        org1 = organizationRepository.save(org1);
+        organizationRepository.save(org1);
         Organization org2 = Organization.builder()
                 .name("Organization 2")
                 .build();
-        org2 = organizationRepository.save(org2);
+        organizationRepository.save(org2);
 
         mockMvc.perform(get("/api/organizations"))
                 .andExpect(status().isOk())
@@ -142,11 +143,11 @@ class OrganizationControllerIntegrationTest {
         Organization org1 = Organization.builder()
                 .name("Zebra Organization")
                 .build();
-        org1 = organizationRepository.save(org1);
+        organizationRepository.save(org1);
         Organization org2 = Organization.builder()
                 .name("Alpha Organization")
                 .build();
-        org2 = organizationRepository.save(org2);
+        organizationRepository.save(org2);
 
         // Test default sort (id,asc) - check that both organizations are present
         // Note: Order by ID may vary, so we just verify both exist
