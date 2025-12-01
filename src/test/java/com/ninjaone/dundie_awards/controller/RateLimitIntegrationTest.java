@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import org.springframework.http.MediaType;
@@ -39,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @Testcontainers
 @TestPropertySource(properties = "rate-limit.write-operations.enabled=true")
+@Import(com.ninjaone.dundie_awards.config.TestSecurityConfig.class)
 @SuppressWarnings("null")
 class RateLimitIntegrationTest {
 

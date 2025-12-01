@@ -49,3 +49,7 @@ rate-limit:
     requests: 100
     window-minutes: 1
     enabled: true
+
+jwt:
+  secret: your-256-bit-secret-key-change-this-in-production-minimum-32-characters-long
+  expiration: 86400000  # 24 hours in milliseconds

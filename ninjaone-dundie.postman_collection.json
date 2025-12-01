@@ -2,10 +2,52 @@
   "info": {
     "name": "ninjaone-dundie.postman_collection_refactored",
     "_postman_id": "22222222-3333-4444-5555-666666666666",
-    "description": "Refactored endpoints for NinjaOne Dundie Awards demo (employees, activities, index).",
+    "description": "Refactored endpoints for NinjaOne Dundie Awards demo (employees, activities, index). All API endpoints require JWT authentication. Use the login endpoint first to obtain a token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "POST /api/auth/login - login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+                  "    console.log(\"JWT token saved to collection variable\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticates a user and returns a JWT token. The token is automatically saved to the collection variable 'jwt_token' for use in subsequent requests. Default credentials: admin/admin (created automatically on application startup)."
+          }
+        }
+      ]
+    },
     {
       "name": "Index",
       "item": [
@@ -18,7 +60,8 @@
               "raw": "{{base_url}}/",
               "host": ["{{base_url}}"],
               "path": [""]
-            }
+            },
+            "description": "Public endpoint - returns the index page"
           }
         }
       ]
@@ -30,7 +73,13 @@
           "name": "GET /api/employees - list employees",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/employees?page=0&size=20&sort=id,asc",
               "host": ["{{base_url}}"],
@@ -53,19 +102,26 @@
                 }
               ]
             },
-            "description": "Returns paginated list of employees. Default: page=0, size=20, sort=id,asc"
+            "description": "Returns paginated list of employees. Default: page=0, size=20, sort=id,asc. Requires authentication."
           }
         },
         {
           "name": "GET /api/employees/{id} - get employee by id",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/employees/{{employeeId}}",
               "host": ["{{base_url}}"],
               "path": ["api", "employees", "{{employeeId}}"]
-            }
+            },
+            "description": "Returns a single employee by ID. Requires authentication."
           }
         },
         {
@@ -76,6 +132,11 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -86,7 +147,8 @@
               "raw": "{{base_url}}/api/employees",
               "host": ["{{base_url}}"],
               "path": ["api", "employees"]
-            }
+            },
+            "description": "Creates a new employee. Requires authentication."
           }
         },
         {
@@ -97,6 +159,11 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -107,19 +174,59 @@
               "raw": "{{base_url}}/api/employees/{{employeeId}}",
               "host": ["{{base_url}}"],
               "path": ["api", "employees", "{{employeeId}}"]
-            }
+            },
+            "description": "Fully updates an employee. All fields are required. Requires authentication."
+          }
+        },
+        {
+          "name": "PATCH /api/employees/{id} - partial update employee",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"UpdatedFirstName\",\n  \"lastName\": null,\n  \"organizationId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/employees/{{employeeId}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "{{employeeId}}"]
+            },
+            "description": "Partially updates an employee. Only provided fields will be updated. Omit fields or set to null to leave unchanged. Requires authentication."
           }
         },
         {
           "name": "DELETE /api/employees/{id} - delete employee",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/employees/{{employeeId}}",
               "host": ["{{base_url}}"],
               "path": ["api", "employees", "{{employeeId}}"]
-            }
+            },
+            "description": "Deletes an employee. Requires authentication."
           }
         },
         {
@@ -130,11 +237,16 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"activityType\": \"HELPED_TEAMMATE\"\n}",
+              "raw": "{\n  \"awardType\": \"INNOVATION\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -146,20 +258,26 @@
               "host": ["{{base_url}}"],
               "path": ["api", "employees", "{{employeeId}}", "awards"]
             },
-            "description": "Awards an employee and creates an activity. Valid activityType values: HELPED_TEAMMATE, COMPLETED_PROJECT, MENTORED_COLLEAGUE, INNOVATION, CUSTOMER_SATISFACTION, EMPLOYEE_CREATED, EMPLOYEE_UPDED, AWARD_GRANTED, AWARD_REMOVED"
+            "description": "Awards an employee and creates an activity. Valid awardType values: HELPED_TEAMMATE, COMPLETED_PROJECT, MENTORED_COLLEAGUE, INNOVATION, CUSTOMER_SATISFACTION. Requires authentication."
           }
         },
         {
           "name": "DELETE /api/employees/{id}/awards - remove award",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/employees/{{employeeId}}/awards",
               "host": ["{{base_url}}"],
               "path": ["api", "employees", "{{employeeId}}", "awards"]
             },
-            "description": "Removes an award from an employee and creates an AWARD_REMOVED activity"
+            "description": "Removes an award from an employee and creates an AWARD_REMOVED activity. Requires authentication."
           }
         }
       ]
@@ -171,7 +289,13 @@
           "name": "GET /api/organizations - list organizations",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/organizations?page=0&size=20&sort=id,asc",
               "host": ["{{base_url}}"],
@@ -194,14 +318,20 @@
                 }
               ]
             },
-            "description": "Returns paginated list of organizations. Default: page=0, size=20, sort=id,asc"
+            "description": "Returns paginated list of organizations. Default: page=0, size=20, sort=id,asc. Requires authentication."
           }
         },
         {
           "name": "POST /api/organizations/{organizationId}/awards - award all employees in organization",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/organizations/{{organizationId}}/awards?type=INNOVATION",
               "host": ["{{base_url}}"],
@@ -214,7 +344,7 @@
                 }
               ]
             },
-            "description": "Awards all employees belonging to the given organization with the specified award type. Returns a list of updated employee DTOs. The award type is case-insensitive."
+            "description": "Awards all employees belonging to the given organization with the specified award type. Returns a list of updated employee DTOs. The award type is case-insensitive. Requires authentication."
           }
         }
       ]
@@ -226,7 +356,13 @@
           "name": "GET /api/activities - list activities",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/activities?page=0&size=20&sort=occurredAt,desc",
               "host": ["{{base_url}}"],
@@ -249,7 +385,7 @@
                 }
               ]
             },
-            "description": "Returns paginated list of activities. Activities are read-only. They are created automatically when employees are awarded or awards are removed. Default: page=0, size=20, sort=occurredAt,desc"
+            "description": "Returns paginated list of activities. Activities are read-only. They are created automatically when employees are awarded or awards are removed. Default: page=0, size=20, sort=occurredAt,desc. Requires authentication."
           }
         }
       ]
@@ -258,19 +394,38 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:8080"
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "admin",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "admin",
+      "type": "string"
     },
     {
       "key": "employeeId",
-      "value": "1"
+      "value": "1",
+      "type": "string"
     },
     {
       "key": "activityId",
-      "value": "1"
+      "value": "1",
+      "type": "string"
     },
     {
       "key": "organizationId",
-      "value": "1"
+      "value": "1",
+      "type": "string"
     }
   ]
 }

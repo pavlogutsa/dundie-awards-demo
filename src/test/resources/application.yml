@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: test
   datasource:
     url: jdbc:h2:mem:testdb
     username: sa
@@ -19,4 +21,8 @@ rate-limit:
     requests: 1
     window-minutes: 1
     enabled: false  # Disabled by default; enable in specific tests using TestContainers
+
+jwt:
+  secret: test-secret-key-for-jwt-token-generation-in-tests-minimum-32-characters
+  expiration: 86400000  # 24 hours
 
