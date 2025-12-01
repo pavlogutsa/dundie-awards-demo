@@ -43,7 +43,6 @@ public class DataLoader implements CommandLineRunner {
 
         // Create admin user if it doesn't exist
         if (!userRepository.existsByUsername("admin")) {
-            @SuppressWarnings("null")
             User adminUser = User.builder()
                     .username("admin")
                     .password(passwordEncoder.encode("admin"))
